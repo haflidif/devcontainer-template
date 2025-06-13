@@ -56,9 +56,17 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
         
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: docs/hugo/package-lock.json
+        
       - name: Install Node.js dependencies
-        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
-        working-directory: docs/hugo
+        run: |
+          cd docs/hugo
+          npm ci
         
       - name: Install Docsy theme
         run: |
