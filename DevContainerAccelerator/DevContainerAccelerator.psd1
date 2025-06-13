@@ -32,9 +32,9 @@
     )
     
     # Private data to pass to the module specified in RootModule/ModuleToProcess
-    PrivateData = @{
-        PSData = @{
-            Tags = @('DevContainer', 'Terraform', 'Bicep', 'Azure', 'IaC', 'Infrastructure', 'Docker', 'VSCode')            LicenseUri = 'https://github.com/haflidif/devcontainer-template/blob/main/LICENSE'
+    PrivateData = @{        PSData = @{
+            Tags = @('DevContainer', 'Terraform', 'Bicep', 'Azure', 'IaC', 'Infrastructure', 'Docker', 'VSCode')
+            LicenseUri = 'https://github.com/haflidif/devcontainer-template/blob/main/LICENSE'
             ProjectUri = 'https://github.com/haflidif/devcontainer-template'
             ReleaseNotes = @'
 1.0.0

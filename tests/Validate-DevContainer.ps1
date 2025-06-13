@@ -65,35 +65,50 @@ if ($PesterAvailable) {
     if ($tags.Count -gt 0) {
         $PesterConfig.Filter.Tag = $tags
     }
-    
-    # Set output file if specified
+      # Set output file if specified
     if ($OutputFile) {
         $PesterConfig.TestResult.Enabled = $true
         $PesterConfig.TestResult.OutputPath = $OutputFile
         $PesterConfig.TestResult.OutputFormat = "NUnitXml"
     }
     
-    # Run Pester tests
+    # Ensure we get return data
+    $PesterConfig.Run.PassThru = $true
+      # Run Pester tests
     $TestResults = Invoke-Pester -Configuration $PesterConfig
     
     # Display results summary
     if (-not $Quiet) {
-        Write-Host "`n📊 Test Results Summary" -ForegroundColor Yellow
-        Write-Host "══════════════════════" -ForegroundColor Yellow
-        Write-Host "Total Tests: $($TestResults.TotalCount)" -ForegroundColor White
-        Write-Host "Passed: $($TestResults.PassedCount)" -ForegroundColor Green
-        Write-Host "Failed: $($TestResults.FailedCount)" -ForegroundColor Red
-        Write-Host "Skipped: $($TestResults.SkippedCount)" -ForegroundColor Yellow
+        Write-Host "`n📊 Test Results Summary" -ForegroundColor Cyan
+        Write-Host "══════════════════════" -ForegroundColor Cyan
         
-        if ($TestResults.FailedCount -eq 0) {
-            Write-Host "`n🎉 All tests passed! The DevContainer template is ready for use." -ForegroundColor Green
+        # Use the correct Pester 5.x properties
+        $TotalTests = $TestResults.TotalCount
+        $PassedTests = $TestResults.PassedCount
+        $FailedTests = $TestResults.FailedCount
+        $SkippedTests = $TestResults.SkippedCount
+        
+        Write-Host "Total Tests: $TotalTests" -ForegroundColor White
+        Write-Host "Passed: $PassedTests" -ForegroundColor Green
+        Write-Host "Failed: $FailedTests" -ForegroundColor $(if ($FailedTests -eq 0) { "Green" } else { "Red" })
+        Write-Host "Skipped: $SkippedTests" -ForegroundColor Yellow
+        
+        if ($FailedTests -eq 0) {
+            Write-Host "`n✅ All tests passed! The DevContainer template is ready for use." -ForegroundColor Green
         } else {
-            Write-Host "`n⚠️  Some tests failed. Please review the detailed output above." -ForegroundColor Yellow
+            Write-Host "`n⚠️  Some tests failed. Please review the detailed output above." -ForegroundColor Red
         }
     }
     
     # Return exit code based on results
-    if ($TestResults.FailedCount -gt 0) {
+    $FailedTests = 0
+    if ($TestResults.PSObject.Properties['FailedCount']) {
+        $FailedTests = $TestResults.FailedCount
+    } elseif ($TestResults.PSObject.Properties['Tests']) {
+        $FailedTests = $TestResults.Tests.Where({$_.Result -eq 'Failed'}).Count
+    }
+    
+    if ($FailedTests -gt 0) {
         exit 1
     } else {
         exit 0
