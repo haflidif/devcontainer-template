@@ -1,0 +1,109 @@
+{
+	"name": "terraform-devcontainer",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"TERRAFORM_VERSION": "1.10"
+		}
+	},
+	"mounts": [
+		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
+	],
+	"overrideCommand": false,
+	"runArgs": [
+		"--init",
+		"--env-file",
+		".devcontainer/devcontainer.env"
+	],
+	"remoteEnv": {
+		// Terraform Backend Configuration (customize for your project)
+		"TF_BACKEND_RESOURCE_GROUP": "${containerEnv:TF_BACKEND_RESOURCE_GROUP}",
+		"TF_BACKEND_LOCATION": "${containerEnv:TF_BACKEND_LOCATION}",
+		"TF_BACKEND_STORAGE_ACCOUNT": "${containerEnv:TF_BACKEND_STORAGE_ACCOUNT}",
+		"TF_BACKEND_CONTAINER": "${containerEnv:TF_BACKEND_CONTAINER}",
+		"TF_BACKEND_KEY": "${containerEnv:TF_BACKEND_KEY}",		// Azure Authentication (supports multiple methods)
+		// Required: Tenant and Subscription
+		"ARM_TENANT_ID": "${containerEnv:ARM_TENANT_ID}",
+		"ARM_SUBSCRIPTION_ID": "${containerEnv:ARM_SUBSCRIPTION_ID}",
+		// Optional: Client ID and Secret (for Service Principal auth)
+		// Leave empty to use Azure CLI authentication (recommended for local dev)
+		"ARM_CLIENT_ID": "${containerEnv:ARM_CLIENT_ID}",
+		"ARM_CLIENT_SECRET": "${containerEnv:ARM_CLIENT_SECRET}",
+		
+		// Add your custom TF_VAR variables here
+		"TF_VAR_environment": "${containerEnv:TF_VAR_ENVIRONMENT}",
+		"TF_VAR_project_name": "${containerEnv:TF_VAR_PROJECT_NAME}",
+		"TF_VAR_location": "${containerEnv:TF_VAR_LOCATION}",
+				// Tool versions
+		"TERRAFORM_VERSION": "${containerEnv:TERRAFORM_VERSION}",
+		"TFLINT_VERSION": "${containerEnv:TFLINT_VERSION}",
+		"TERRAFORM_DOCS_VERSION": "${containerEnv:TERRAFORM_DOCS_VERSION}",
+		"TERRAGRUNT_VERSION": "${containerEnv:TERRAGRUNT_VERSION}",
+		"BICEP_VERSION": "${containerEnv:BICEP_VERSION}",
+		"INSTALL_BICEP": "${containerEnv:INSTALL_BICEP}"
+	},
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"terraform.languageServer": {
+					"enabled": true,
+					"args": []
+				},
+				"terraform.languageServer.args": [
+					"serve"
+				],
+				"[terraform]": {
+					"editor.formatOnSave": true,
+					"editor.defaultFormatter": "hashicorp.terraform",
+					"editor.formatOnSaveMode": "file"
+				},
+				"[terraform-vars]": {
+					"editor.formatOnSave": true,
+					"editor.defaultFormatter": "hashicorp.terraform",
+					"editor.formatOnSaveMode": "file"
+				},
+				"terraform.experimentalFeatures": {
+					"validateOnSave": true,
+					"prefillRequiredFields": true
+				},
+				"terraform.format": {
+					"ignoreExtensions": [],
+					"formatOnSave": true,
+					"enable": true,
+					"alignArguments": true,
+					"ignoreComments": true
+				}
+			},			"extensions": [
+				"hashicorp.terraform",
+				"ms-vscode.azurecli",
+				"ms-azuretools.vscode-azureterraform",
+				"ms-azuretools.vscode-docker",
+				"ms-azuretools.vscode-bicep",
+				"msazurermtools.azurerm-vscode-tools",
+				"ms-vscode.powershell",
+				"github.copilot",
+				"github.copilot-chat",
+				"terraform-linters.tflint-vscode",
+				"ms-python.python",
+				"redhat.vscode-yaml",
+				"ms-vscode.vscode-json",
+				"bradlc.vscode-tailwindcss",
+				"esbenp.prettier-vscode"
+			]
+		}
+	},
+	"otherPortsAttributes": {
+		"onAutoForward": "silent"
+	},
+	"postStartCommand": ".devcontainer/scripts/postStart.sh",
+	"initializeCommand": [
+		".devcontainer/scripts/initialize"
+	],
+	"remoteUser": "vscode",
+	"features": {
+		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "16"
+		}
+	}
+}

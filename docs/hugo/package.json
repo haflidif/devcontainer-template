@@ -1,0 +1,32 @@
+{
+  "name": "devcontainer-template-docs",
+  "version": "1.0.0",
+  "description": "Hugo documentation site for DevContainer Template",
+  "main": "index.js",
+  "scripts": {
+    "build": "hugo --gc --minify",
+    "serve": "hugo server --buildDrafts --buildFuture",
+    "test": "hugo --gc --minify --buildFuture"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haflidif/devcontainer-template.git"
+  },
+  "keywords": [
+    "hugo",
+    "documentation",
+    "devcontainer",
+    "terraform",
+    "bicep"
+  ],
+  "author": "DevContainer Template Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "postcss-cli": "^10.1.0"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.2"
+  }
+}

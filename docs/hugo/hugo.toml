@@ -1,0 +1,62 @@
+baseURL = "https://haflidif.github.io/devcontainer-template"
+languageCode = "en-us"
+title = "DevContainer Template for Infrastructure as Code"
+# theme = "docsy"  # Remove this line when using Hugo modules
+
+# Site description and metadata
+[params]
+  version = "v2.0"
+  description = "A comprehensive DevContainer template for Terraform and Bicep development with modern testing, automation, and documentation."
+  github_repo = "https://github.com/haflidif/devcontainer-template"
+  github_branch = "main"
+  
+  # Edit page settings
+  edit_page = true
+  github_project_repo = "https://github.com/haflidif/devcontainer-template"
+  
+  # Search settings
+  search_enabled = true
+  
+  # Footer
+  copyright = "The DevContainer Template Contributors"
+  privacy_policy = ""
+  
+  # Feedback
+  feedback = true
+  feedback_yes = "Glad to hear it! Please tell us how we can improve."
+  feedback_no = "Sorry to hear that. Please tell us how we can improve."
+
+# Menu configuration
+[[menu.main]]
+  name = "GitHub"
+  url = "https://github.com/haflidif/devcontainer-template"
+  weight = 50
+  [menu.main.params]
+    icon = "fab fa-github"
+
+# Markup configuration for code highlighting
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    style = "github"
+    lineNos = true
+    lineNumbersInTable = true
+    noClasses = false
+
+# Module configuration for Docsy theme
+[module]
+  [[module.imports]]
+    path = "github.com/google/docsy"
+    disable = false
+  [[module.imports]]
+    path = "github.com/google/docsy/dependencies"
+    disable = false
+
+# Language settings
+[languages]
+  [languages.en]
+    languageName = "English"
+    weight = 1
+    title = "DevContainer Template Documentation"

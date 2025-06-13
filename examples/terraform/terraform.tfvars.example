@@ -1,0 +1,14 @@
+# Example terraform.tfvars file
+# Set your variable values here
+
+project_name = "myproject"
+environment  = "dev"
+location     = "East US"
+
+common_tags = {
+  Environment   = "dev"
+  Project      = "myproject"
+  Owner        = "team@company.com"
+  CostCenter   = "engineering"
+  ManagedBy    = "terraform"
+}

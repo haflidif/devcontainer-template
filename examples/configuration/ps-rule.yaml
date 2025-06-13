@@ -1,0 +1,38 @@
+# PSRule for Azure configuration file
+# This file configures PSRule to validate Azure infrastructure
+
+# Binding configuration
+binding:
+  targetType:
+    - resourceType
+    - type
+
+configuration:
+  # Rule configuration
+  AZURE_BICEP_CHECK_TOOL: true
+  AZURE_BICEP_MINIMUM_VERSION: "0.20.4"
+
+  # Resource naming conventions
+  AZURE_RESOURCE_ALLOWED_LOCATIONS:
+    - "eastus"
+    - "eastus2"
+    - "westus2"
+    - "northeurope"
+    - "westeurope"
+
+  # Policy settings
+  AZURE_POLICY_IGNORE_LIST:
+    - "/subscriptions/{subscription-id}/resourceGroups/{rg-name}"
+
+# Rule suppression
+suppression:
+  # Suppress rules that don't apply to this environment
+  Azure.Storage.BlobPublicAccess:
+    - main.bicep # Allow for demo purposes
+
+# Output configuration
+output:
+  culture:
+    - "en-US"
+  format: Wide
+  outcome: Processed

@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="38" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="2" invalid="0" date="2025-06-13" time="22:14:45">
+  <environment cwd="C:\git\repos\devcontainer-template" os-version="10.0.26100" user-domain="REDMOND" user="haflidif" platform="Microsoft Windows 11 Enterprise|C:\WINDOWS|\Device\Harddisk0\Partition3" machine-name="DESKTOP-SD3N99C" clr-version="9.0.4" nunit-version="2.5.8.0" />
+  <culture-info current-culture="nb-NO" current-uiculture="en-GB" />
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Ignored" success="True" time="0.3912" asserts="0" description="Pester">
+    <results>
+      <test-suite type="TestFixture" name="C:\git\repos\devcontainer-template\tests\DevContainer.Tests.ps1" executed="True" result="Ignored" success="True" time="0.3912" asserts="0" description="C:\git\repos\devcontainer-template\tests\DevContainer.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="DevContainer Template - PowerShell Syntax Validation" executed="True" result="Success" success="True" time="0.0261" asserts="0" description="DevContainer Template - PowerShell Syntax Validation">
+            <results>
+              <test-suite type="TestFixture" name="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts" executed="True" result="Success" success="True" time="0.0236" asserts="0" description="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts">
+                <results>
+                  <test-case description="Initialize-DevContainer.ps1 should have valid PowerShell syntax" name="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts.Initialize-DevContainer.ps1 should have valid PowerShell syntax" time="0.0048" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Install-DevContainerAccelerator.ps1 should have valid PowerShell syntax" name="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts.Install-DevContainerAccelerator.ps1 should have valid PowerShell syntax" time="0.0039" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="DevContainerAccelerator.psm1 should have valid PowerShell syntax" name="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts.DevContainerAccelerator.psm1 should have valid PowerShell syntax" time="0.0062" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Scripts should be convertible to ScriptBlock" name="DevContainer Template - PowerShell Syntax Validation.Core PowerShell Scripts.Scripts should be convertible to ScriptBlock" time="0.0058" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="DevContainer Template - Module Functionality" executed="True" result="Ignored" success="True" time="0.1179" asserts="0" description="DevContainer Template - Module Functionality">
+            <results>
+              <test-suite type="TestFixture" name="DevContainer Template - Module Functionality.Module Import and Export" executed="True" result="Success" success="True" time="0.0785" asserts="0" description="DevContainer Template - Module Functionality.Module Import and Export">
+                <results>
+                  <test-case description="Should import the DevContainerAccelerator module successfully" name="DevContainer Template - Module Functionality.Module Import and Export.Should import the DevContainerAccelerator module successfully" time="0.0046" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should export functions from the module" name="DevContainer Template - Module Functionality.Module Import and Export.Should export functions from the module" time="0.002" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have module manifest file" name="DevContainer Template - Module Functionality.Module Import and Export.Should have module manifest file" time="0.069" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - Module Functionality.Specific Function Testing" executed="True" result="Ignored" success="True" time="0.0816" asserts="0" description="DevContainer Template - Module Functionality.Specific Function Testing">
+                <results>
+                  <test-case description="Test-IsGuid function should work correctly" name="DevContainer Template - Module Functionality.Specific Function Testing.Test-IsGuid function should work correctly" time="0.0004" asserts="0" success="False" result="Ignored" executed="False" />
+                  <test-case description="Write-ColorOutput function should be available" name="DevContainer Template - Module Functionality.Specific Function Testing.Write-ColorOutput function should be available" time="0.0003" asserts="0" success="False" result="Ignored" executed="False" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="DevContainer Template - File Structure" executed="True" result="Success" success="True" time="0.1635" asserts="0" description="DevContainer Template - File Structure">
+            <results>
+              <test-suite type="TestFixture" name="DevContainer Template - File Structure.Core Files" executed="True" result="Success" success="True" time="0.0062" asserts="0" description="DevContainer Template - File Structure.Core Files">
+                <results>
+                  <test-case description="Should have Initialize-DevContainer.ps1" name="DevContainer Template - File Structure.Core Files.Should have Initialize-DevContainer.ps1" time="0.0013" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have Install-DevContainerAccelerator.ps1" name="DevContainer Template - File Structure.Core Files.Should have Install-DevContainerAccelerator.ps1" time="0.0014" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have README.md" name="DevContainer Template - File Structure.Core Files.Should have README.md" time="0.0013" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - File Structure.DevContainer Configuration" executed="True" result="Success" success="True" time="0.016" asserts="0" description="DevContainer Template - File Structure.DevContainer Configuration">
+                <results>
+                  <test-case description="Should have devcontainer.json" name="DevContainer Template - File Structure.DevContainer Configuration.Should have devcontainer.json" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have Dockerfile" name="DevContainer Template - File Structure.DevContainer Configuration.Should have Dockerfile" time="0.0011" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have devcontainer.env.example" name="DevContainer Template - File Structure.DevContainer Configuration.Should have devcontainer.env.example" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have scripts directory" name="DevContainer Template - File Structure.DevContainer Configuration.Should have scripts directory" time="0.0014" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="devcontainer.json should be valid JSON" name="DevContainer Template - File Structure.DevContainer Configuration.devcontainer.json should be valid JSON" time="0.0027" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - File Structure.Module Files" executed="True" result="Success" success="True" time="0.0234" asserts="0" description="DevContainer Template - File Structure.Module Files">
+                <results>
+                  <test-case description="Should have DevContainerAccelerator.psd1" name="DevContainer Template - File Structure.Module Files.Should have DevContainerAccelerator.psd1" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have DevContainerAccelerator.psm1" name="DevContainer Template - File Structure.Module Files.Should have DevContainerAccelerator.psm1" time="0.0039" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - File Structure.Example Directories" executed="True" result="Success" success="True" time="0.0395" asserts="0" description="DevContainer Template - File Structure.Example Directories">
+                <results>
+                  <test-suite type="ParameterizedTest" name="DevContainer Template - File Structure.Example Directories.Should have &lt;_&gt; example directory" executed="True" result="Success" success="True" time="0.0075" asserts="0" description="Should have &lt;_&gt; example directory">
+                    <results>
+                      <test-case description="Should have getting-started example directory" name="DevContainer Template - File Structure.Example Directories.Should have getting-started example directory" time="0.0014" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Should have terraform example directory" name="DevContainer Template - File Structure.Example Directories.Should have terraform example directory" time="0.0013" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Should have bicep example directory" name="DevContainer Template - File Structure.Example Directories.Should have bicep example directory" time="0.0013" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Should have arm example directory" name="DevContainer Template - File Structure.Example Directories.Should have arm example directory" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Should have powershell example directory" name="DevContainer Template - File Structure.Example Directories.Should have powershell example directory" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Should have configuration example directory" name="DevContainer Template - File Structure.Example Directories.Should have configuration example directory" time="0.0011" asserts="0" success="True" result="Success" executed="True" />
+                    </results>
+                  </test-suite>
+                  <test-suite type="ParameterizedTest" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md" executed="True" result="Success" success="True" time="0.0061" asserts="0" description="Each example directory should have a README.md">
+                    <results>
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.001" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.001" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.001" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.0011" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.001" asserts="0" success="True" result="Success" executed="True" />
+                      <test-case description="Each example directory should have a README.md" name="DevContainer Template - File Structure.Example Directories.Each example directory should have a README.md()" time="0.001" asserts="0" success="True" result="Success" executed="True" />
+                    </results>
+                  </test-suite>
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - File Structure.Test Directory" executed="True" result="Success" success="True" time="0.0436" asserts="0" description="DevContainer Template - File Structure.Test Directory">
+                <results>
+                  <test-case description="Should have tests directory" name="DevContainer Template - File Structure.Test Directory.Should have tests directory" time="0.0011" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have this test file" name="DevContainer Template - File Structure.Test Directory.Should have this test file" time="0.0009" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="DevContainer Template - Configuration Validation" executed="True" result="Success" success="True" time="0.1792" asserts="0" description="DevContainer Template - Configuration Validation">
+            <results>
+              <test-suite type="TestFixture" name="DevContainer Template - Configuration Validation.DevContainer Configuration" executed="True" result="Success" success="True" time="0.0076" asserts="0" description="DevContainer Template - Configuration Validation.DevContainer Configuration">
+                <results>
+                  <test-case description="devcontainer.json should have required properties" name="DevContainer Template - Configuration Validation.DevContainer Configuration.devcontainer.json should have required properties" time="0.0012" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have postCreateCommand or onCreateCommand if specified" name="DevContainer Template - Configuration Validation.DevContainer Configuration.Should have postCreateCommand or onCreateCommand if specified" time="0.0025" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="DevContainer Template - Configuration Validation.Script Files Configuration" executed="True" result="Success" success="True" time="0.0134" asserts="0" description="DevContainer Template - Configuration Validation.Script Files Configuration">
+                <results>
+                  <test-case description="DevContainer scripts should be executable" name="DevContainer Template - Configuration Validation.Script Files Configuration.DevContainer scripts should be executable" time="0.0036" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="DevContainer Template - Integration Tests" executed="True" result="Success" success="True" time="0.2822" asserts="0" description="DevContainer Template - Integration Tests">
+            <results>
+              <test-suite type="TestFixture" name="DevContainer Template - Integration Tests.End-to-End Validation" executed="True" result="Success" success="True" time="0.1006" asserts="0" description="DevContainer Template - Integration Tests.End-to-End Validation">
+                <results>
+                  <test-case description="Should be able to load and parse all PowerShell files without errors" name="DevContainer Template - Integration Tests.End-to-End Validation.Should be able to load and parse all PowerShell files without errors" time="0.0385" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="Should have consistent line endings in text files" name="DevContainer Template - Integration Tests.End-to-End Validation.Should have consistent line endings in text files" time="0.0597" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>

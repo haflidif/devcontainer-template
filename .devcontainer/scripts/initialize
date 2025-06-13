@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# DevContainer Initialize Script
+# This script runs on the host before the container is built
+
+echo "🏗️  Initializing DevContainer..."
+
+# Create necessary directories
+mkdir -p .devcontainer/scripts
+
+# Set execute permissions on scripts
+chmod +x .devcontainer/scripts/*.sh
+
+echo "✅ DevContainer initialization complete!"
