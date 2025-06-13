@@ -21,5 +21,6 @@ New to the template? Start with our [Getting Started Guide](/docs/getting-starte
 - **[Configuration](/docs/configuration/)** - Customizing the template
 - **[Testing](/docs/testing/)** - Using the modern Pester testing framework
 - **[Examples](/docs/examples/)** - Practical examples and use cases
-- **[PowerShell Module](/docs/powershell/)** - DevContainer Accelerator automation
+- **[PowerShell Module](/docs/powershell/)** - DevContainerAccelerator automation
+- **[Module Reference](/docs/api/)** - Complete function reference
 - **[Troubleshooting](/docs/troubleshooting/)** - Common issues and solutions

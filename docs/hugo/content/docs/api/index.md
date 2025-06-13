@@ -1,14 +1,14 @@
 ---
-title: "API Reference"
-linkTitle: "API Reference"
+title: "Module Reference"
+linkTitle: "Module Reference"
 weight: 7
 description: >
-  Complete API reference for the DevContainer Accelerator PowerShell module functions.
+  Complete function reference for the DevContainerAccelerator PowerShell module.
 ---
 
-# API Reference
+# DevContainerAccelerator Module Reference
 
-This section provides detailed API documentation for all functions in the DevContainer Accelerator PowerShell module.
+This section provides detailed function documentation for the DevContainerAccelerator PowerShell module.
 
 ## Project Management Functions
 
