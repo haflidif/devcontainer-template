@@ -1,96 +1,101 @@
 ---
-title: "DevContainer Template for Infrastructure as Code"
-linkTitle: "Home"
-type: "docs"
+title: "DevContainer Template"
+linkTitle: "DevContainer Template"
+description: "Modern, automated development container template with comprehensive tooling and documentation"
+type: docs
+menu:
+  main:
+    weight: 10
 cascade:
-  - type: "docs"
-    _target:
-      path: "/docs/**"
+  type: docs
 ---
 
-# DevContainer Template for Infrastructure as Code
+{{% pageinfo %}}
+**Welcome to the DevContainer Template Project!**
 
-Welcome to the comprehensive DevContainer template documentation for Terraform and Bicep development!
+This is a modern, comprehensive development container template featuring automated testing, documentation, and CI/CD workflows. The template is designed for rapid project setup with industry best practices.
 
-> **📖 Documentation Site**: Now live on GitHub Pages! Last updated: June 13, 2025
+**Latest Update:** Fixed GitHub Actions workflow for reliable documentation deployment ✅
+{{% /pageinfo %}}
 
-{{< blocks/cover title="DevContainer Template for Infrastructure as Code" image_anchor="top" height="full" color="primary" >}}
-<div class="mx-auto">
-	<a class="btn btn-lg btn-primary mr-3 mb-4" href="/docs/getting-started/">
-		Get Started <i class="fas fa-arrow-alt-circle-right ml-2"></i>
-	</a>
-	<a class="btn btn-lg btn-secondary mr-3 mb-4" href="https://github.com/haflidif/devcontainer-template">
-		GitHub <i class="fab fa-github ml-2 "></i>
-	</a>
-	<p class="lead mt-5">🚀 Quick Start | ✅ 38 Tests | 🔄 CI/CD Ready | 🛡️ Secure</p>
-</div>
-{{< /blocks/cover >}}
+# DevContainer Template
 
-{{< blocks/section color="dark" >}}
-{{% blocks/feature icon="fab fa-docker" title="Pre-configured DevContainer" %}}
-Complete development environment with Terraform, Bicep, and all essential IaC tools.
-{{% /blocks/feature %}}
+A comprehensive, modern development container template featuring:
 
-{{% blocks/feature icon="fas fa-test-tube" title="Modern Testing Framework" %}}
-Pester 5.0+ integration with 38 comprehensive tests and multiple execution modes.
-{{% /blocks/feature %}}
+- **🐳 Multi-Language Support**: Terraform, Bicep, PowerShell, and more
+- **🧪 Automated Testing**: Pester-based validation with comprehensive test coverage
+- **📚 Beautiful Documentation**: Hugo-powered site with automatic deployment
+- **🔧 Rich Tooling**: Pre-configured with essential development tools
+- **⚡ Quick Setup**: One-command initialization and configuration
+- **🔒 Security**: Built-in security scanning and validation
+- **🚀 CI/CD Ready**: GitHub Actions workflows for automation
 
-{{% blocks/feature icon="fas fa-rocket" title="PowerShell Automation" %}}
-Enhanced automation with cross-subscription backend support and guided setup.
-{{% /blocks/feature %}}
+## Quick Start
 
-{{< /blocks/section >}}
+Get started with your development environment in minutes:
 
-{{< blocks/section color="primary" >}}
-<div class="col">
-<h2 class="text-center">What's Included</h2>
-
-### Core Infrastructure Tools
-- **Terraform** - Infrastructure as Code
-- **Bicep** - Azure native Infrastructure as Code  
-- **TFLint** - Terraform linter with cloud provider rules
-- **terraform-docs** - Documentation generator
-
-### Security & Compliance
-- **Checkov** - Static analysis for infrastructure security
-- **tfsec** - Security scanner for Terraform
-- **PSRule for Azure** - Azure resource validation
-
-### Enhanced Features
-- **🧪 Modern Testing**: Pester 5.0+ with 38 tests
-- **⚡ PowerShell Automation**: Cross-subscription backend support
-- **🎯 Developer Experience**: VS Code tasks and watch mode
-- **📚 Documentation**: Hugo-based docs with GitHub Pages
-
-</div>
-{{< /blocks/section >}}
-
-{{< blocks/section >}}
-<div class="col-12">
-<h2 class="text-center">Quick Start</h2>
-
-Get up and running in minutes with our automated setup:
-
-```powershell
-# Clone and initialize
+```bash
+# Clone the template
 git clone https://github.com/haflidif/devcontainer-template.git
 cd devcontainer-template
 
-# Run initialization with your Azure details
-.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
-                             -SubscriptionId "your-subscription-id" `
-                             -ProjectName "my-project"
+# Initialize (PowerShell)
+.\Initialize-DevContainer.ps1
 
-# Validate everything works
-.\tests\Test-DevContainer.ps1
+# Run tests
+.\tests\Validate-DevContainer.ps1
 
-# Open in VS Code
-code .
+# Set up documentation site
+.\docs\Setup-Hugo.ps1 -Serve
 ```
 
-<a class="btn btn-lg btn-primary mr-3 mb-4" href="/docs/getting-started/">
-	Full Setup Guide <i class="fas fa-arrow-alt-circle-right ml-2"></i>
-</a>
+## What's Included
 
-</div>
-{{< /blocks/section >}}
+### Development Tools
+- **Terraform** with validation, formatting, and security scanning
+- **Azure Bicep** with compilation and linting
+- **PowerShell** with modern modules and accelerators  
+- **Security Tools**: TFSec, Checkov, PSRule
+- **Documentation**: Hugo with Docsy theme
+
+### Testing & Validation
+- **Pester Tests**: Comprehensive validation suite
+- **Syntax Checking**: Multi-language syntax validation
+- **Security Scanning**: Automated security checks
+- **Configuration Validation**: Environment and setup verification
+
+### Documentation & Automation
+- **Hugo Site**: Modern documentation with search and navigation
+- **GitHub Actions**: Automated testing and deployment
+- **VS Code Tasks**: Integrated development workflows
+- **PowerShell Modules**: Custom accelerator functions
+
+## Architecture
+
+This template provides a complete development ecosystem:
+
+```mermaid
+graph TD
+    A[DevContainer Template] --> B[Development Environment]
+    A --> C[Testing Framework]
+    A --> D[Documentation Site]
+    A --> E[CI/CD Workflows]
+    
+    B --> B1[Multi-Language Support]
+    B --> B2[Rich Tooling]
+    B --> B3[VS Code Integration]
+    
+    C --> C1[Pester Tests]
+    C --> C2[Security Scanning]
+    C --> C3[Validation Rules]
+    
+    D --> D1[Hugo Site]
+    D --> D2[Docsy Theme]
+    D --> D3[Auto-Deployment]
+    
+    E --> E1[GitHub Actions]
+    E --> E2[Automated Testing]
+    E --> E3[Documentation Deploy]
+```
+
+Ready to get started? Check out our [Getting Started Guide](getting-started/) or explore the [Examples](examples/)!
