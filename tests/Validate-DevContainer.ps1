@@ -73,8 +73,7 @@ if ($PesterAvailable) {
     }
     
     # Ensure we get return data
-    $PesterConfig.Run.PassThru = $true
-      # Run Pester tests
+    $PesterConfig.Run.PassThru = $true    # Run Pester tests
     $TestResults = Invoke-Pester -Configuration $PesterConfig
     
     # Display results summary
