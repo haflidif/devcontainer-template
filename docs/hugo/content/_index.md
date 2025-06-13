@@ -12,6 +12,8 @@ cascade:
 
 Welcome to the comprehensive DevContainer template documentation for Terraform and Bicep development!
 
+> **📖 Documentation Site**: Now live on GitHub Pages! Last updated: June 13, 2025
+
 {{< blocks/cover title="DevContainer Template for Infrastructure as Code" image_anchor="top" height="full" color="primary" >}}
 <div class="mx-auto">
 	<a class="btn btn-lg btn-primary mr-3 mb-4" href="/docs/getting-started/">
