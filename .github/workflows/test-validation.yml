@@ -1,0 +1,256 @@
+name: Test and Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  MODULE_NAME: DevContainerAccelerator
+
+jobs:
+  powershell-tests:
+    name: PowerShell Module Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup PowerShell
+      shell: pwsh
+      run: |
+        Write-Host "PowerShell version: $($PSVersionTable.PSVersion)"
+        Write-Host "Available modules:"
+        Get-Module -ListAvailable | Select-Object Name, Version | Sort-Object Name
+        
+    - name: Install Pester
+      shell: pwsh
+      run: |
+        if (-not (Get-Module -ListAvailable -Name Pester)) {
+          Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
+        }
+        Import-Module Pester -Force
+        Write-Host "Pester version: $((Get-Module Pester).Version)"
+        
+    - name: Test Module Manifest
+      shell: pwsh
+      run: |
+        $ManifestPath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
+        if (Test-Path $ManifestPath) {
+          Test-ModuleManifest -Path $ManifestPath
+          Write-Host "✅ Module manifest is valid"
+        } else {
+          Write-Error "❌ Module manifest not found at: $ManifestPath"
+          exit 1
+        }
+        
+    - name: Import Module
+      shell: pwsh
+      run: |
+        $ModulePath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
+        try {
+          Import-Module $ModulePath -Force
+          $ImportedModule = Get-Module DevContainerAccelerator
+          Write-Host "✅ Module imported successfully"
+          Write-Host "Exported functions: $($ImportedModule.ExportedFunctions.Keys -join ', ')"
+          Write-Host "Exported aliases: $($ImportedModule.ExportedAliases.Keys -join ', ')"
+        } catch {
+          Write-Error "❌ Failed to import module: $_"
+          exit 1
+        }
+        
+    - name: Run Pester Tests
+      shell: pwsh
+      run: |
+        if (Test-Path "./tests/") {
+          $TestResults = Invoke-Pester -Path "./tests/" -Output Detailed -PassThru
+          
+          Write-Host ""
+          Write-Host "=== Test Summary ==="
+          Write-Host "Total Tests: $($TestResults.TotalCount)"
+          Write-Host "Passed: $($TestResults.PassedCount)"
+          Write-Host "Failed: $($TestResults.FailedCount)"
+          Write-Host "Skipped: $($TestResults.SkippedCount)"
+          
+          if ($TestResults.FailedCount -gt 0) {
+            Write-Error "❌ Some tests failed"
+            exit 1
+          } else {
+            Write-Host "✅ All tests passed"
+          }
+        } else {
+          Write-Host "⚠️ No tests directory found"
+        }
+
+  validate-examples:
+    name: Validate Examples
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Validate Example Structure
+      shell: pwsh
+      run: |
+        $ExamplesPath = "./examples"
+        if (Test-Path $ExamplesPath) {
+          Write-Host "✅ Examples directory exists"
+          $Examples = Get-ChildItem $ExamplesPath -Directory
+          Write-Host "Found examples: $($Examples.Name -join ', ')"
+          
+          foreach ($Example in $Examples) {
+            $ReadmePath = Join-Path $Example.FullName "README.md"
+            if (Test-Path $ReadmePath) {
+              Write-Host "✅ $($Example.Name) has README.md"
+            } else {
+              Write-Warning "⚠️ $($Example.Name) missing README.md"
+            }
+          }
+        } else {
+          Write-Warning "⚠️ No examples directory found"
+        }
+
+  validate-documentation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check Required Files
+      shell: pwsh
+      run: |
+        $RequiredFiles = @(
+          "README.md",
+          "LICENSE",
+          "DevContainerAccelerator/DevContainerAccelerator.psd1",
+          "DevContainerAccelerator/DevContainerAccelerator.psm1"
+        )
+        
+        $AllFilesExist = $true
+        foreach ($File in $RequiredFiles) {
+          if (Test-Path $File) {
+            Write-Host "✅ $File exists"
+          } else {
+            Write-Error "❌ $File is missing"
+            $AllFilesExist = $false
+          }
+        }
+        
+        if (-not $AllFilesExist) {
+          exit 1
+        }
+        
+    - name: Validate README
+      shell: pwsh
+      run: |
+        $ReadmeContent = Get-Content "README.md" -Raw
+        $RequiredSections = @(
+          "# DevContainer Template",
+          "## Installation",
+          "## Usage",
+          "## Examples"
+        )
+        
+        foreach ($Section in $RequiredSections) {
+          if ($ReadmeContent -match [regex]::Escape($Section)) {
+            Write-Host "✅ README contains: $Section"
+          } else {
+            Write-Warning "⚠️ README missing section: $Section"
+          }
+        }
+
+  validate-scripts:
+    name: Validate PowerShell Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser -SkipPublisherCheck
+        
+    - name: Run PSScriptAnalyzer
+      shell: pwsh
+      run: |
+        $ScriptPaths = @(
+          "./DevContainerAccelerator/DevContainerAccelerator.psm1",
+          "./Initialize-DevContainer.ps1",
+          "./Install-DevContainerAccelerator.ps1"
+        )
+        
+        $AllIssues = @()
+        foreach ($ScriptPath in $ScriptPaths) {
+          if (Test-Path $ScriptPath) {
+            Write-Host "Analyzing: $ScriptPath"
+            $Issues = Invoke-ScriptAnalyzer -Path $ScriptPath -Severity Warning,Error
+            if ($Issues) {
+              $AllIssues += $Issues
+              Write-Host "Found $($Issues.Count) issues in $ScriptPath"
+              $Issues | ForEach-Object {
+                Write-Host "  - Line $($_.Line): $($_.Message) [$($_.RuleName)]"
+              }
+            } else {
+              Write-Host "✅ No issues found in $ScriptPath"
+            }
+          } else {
+            Write-Warning "⚠️ Script not found: $ScriptPath"
+          }
+        }
+        
+        if ($AllIssues.Count -gt 0) {
+          Write-Host "Total issues found: $($AllIssues.Count)"
+          # For now, just warn about issues, don't fail the build
+          # Uncomment the next line to fail on script analyzer issues:
+          # exit 1
+        }
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [powershell-tests, validate-examples, validate-documentation, validate-scripts]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Test Module Installation Process
+      shell: pwsh
+      run: |
+        # Test the installation script
+        if (Test-Path "./Install-DevContainerAccelerator.ps1") {
+          Write-Host "Testing installation script syntax..."
+          $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content "./Install-DevContainerAccelerator.ps1" -Raw), [ref]$null)
+          Write-Host "✅ Installation script syntax is valid"
+        }
+        
+        # Test module import and basic functionality
+        $ModulePath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
+        Import-Module $ModulePath -Force
+        
+        # Test that main functions are available
+        $MainFunctions = @(
+          'Initialize-DevContainer',
+          'New-IaCProject',
+          'Test-DevContainerPrerequisites',
+          'Update-DevContainerTemplate'
+        )
+        
+        foreach ($Function in $MainFunctions) {
+          if (Get-Command $Function -ErrorAction SilentlyContinue) {
+            Write-Host "✅ Function available: $Function"
+          } else {
+            Write-Error "❌ Function not available: $Function"
+            exit 1
+          }
+        }
+        
+        Write-Host "✅ All integration tests passed"

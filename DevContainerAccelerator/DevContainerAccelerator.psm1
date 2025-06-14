@@ -248,15 +248,15 @@ function New-AzureTerraformBackend {
         $accountInfo = Test-AzureAuthentication -SubscriptionId $SubscriptionId
         
         Write-ColorOutput "🏗️  Creating Terraform backend infrastructure..." "Magenta"
-        
-        # Check/Create Resource Group
+          # Check/Create Resource Group
         if ($CreateResourceGroup) {
             Write-ColorOutput "📁 Creating resource group '$ResourceGroupName'..." "Cyan"
             $rgResult = az group create --name $ResourceGroupName --location $Location --output json
             if ($LASTEXITCODE -ne 0) {
                 throw "Failed to create resource group"
             }
-            $resourceGroup = $rgResult | ConvertFrom-Json            Write-ColorOutput "✅ Resource group created: $($resourceGroup.name)" "Green"
+            $resourceGroup = $rgResult | ConvertFrom-Json
+            Write-ColorOutput "✅ Resource group created: $($resourceGroup.name)" "Green"
         }
         else {
             # Check if resource group exists
@@ -299,10 +299,9 @@ function New-AzureTerraformBackend {
         
         # Check/Create Container
         $containerCheck = Test-AzureStorageContainer -StorageAccountName $StorageAccountName -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-        
-        if (-not $containerCheck.Exists) {
+          if (-not $containerCheck.Exists) {
             Write-ColorOutput "📦 Creating storage container '$ContainerName'..." "Cyan"
-              $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
+            $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
             $storageKey = $keys[0].value
             
             $null = az storage container create `
