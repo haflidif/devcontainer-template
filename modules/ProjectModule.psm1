@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-    Project initialization and example file management for DevContainer Accelerator.
+    Project initialization and example file management for Infrastructure as Code development.
 
 .DESCRIPTION
     This module provides functionality for adding example files and initializing
-    Terraform and Bicep projects.
+    Terraform and Bicep projects in DevContainer environments.
 #>
 
 Import-Module -Name (Join-Path $PSScriptRoot "CommonModule.psm1") -Force

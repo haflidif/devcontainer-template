@@ -2,10 +2,11 @@
 
 <#
 .SYNOPSIS
-    Common utilities and helper functions for DevContainer Accelerator.
+    Common utilities and helper functions for Infrastructure as Code development.
 
 .DESCRIPTION
-    This module provides shared utility functions used across the DevContainer Accelerator.
+    This module provides shared utility functions used across the DevContainer Template modules
+    for Terraform and Bicep development environments.
     Includes color output, validation, and common helper functions.
 #>
 

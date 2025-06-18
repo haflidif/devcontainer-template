@@ -160,7 +160,7 @@ Write-Host "══════════════════════�
 
 if ($ErrorCount -eq 0) {
     Write-Host "✅ All validation checks passed!" -ForegroundColor Green
-    Write-Host "🚀 DevContainer Accelerator is ready to use." -ForegroundColor Green
+    Write-Host "🚀 DevContainer Template is ready to use." -ForegroundColor Green
     exit 0
 } else {
     Write-Host "❌ $ErrorCount validation error(s) found." -ForegroundColor Red

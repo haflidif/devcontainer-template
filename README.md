@@ -48,7 +48,7 @@ code .
 
 **✅ Refactored for Reliability & Maintainability**
 
-The DevContainer Accelerator uses a modular architecture:
+The DevContainer Template uses a modular architecture:
 
 - **`Initialize-DevContainer.ps1`** - Production-ready script with hybrid architecture
 - **`modules/`** - Specialized PowerShell modules for specific functionality
@@ -80,7 +80,7 @@ Our comprehensive documentation covers:
 - **Development**: Python, Docker, pre-commit, Git
 
 ### PowerShell Automation
-- **DevContainer Accelerator Module** with 12+ automation functions
+- **DevContainer Template Modules** with 12+ automation functions
 - **Backend Management** with cross-subscription support
 - **Interactive Setup** with guided configuration
 - **Advanced Validation** with comprehensive testing

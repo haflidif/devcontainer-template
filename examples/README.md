@@ -30,7 +30,7 @@ Azure Resource Manager templates:
 ### 💻 [PowerShell](./powershell/)
 PowerShell automation scripts and examples:
 - **Backend-Management-Examples.ps1** - Advanced backend management scenarios
-- **PowerShell-Usage.ps1** - DevContainer Accelerator module usage examples
+- **PowerShell-Usage.ps1** - DevContainer Template module usage examples
 
 ### ⚙️ [Configuration](./configuration/)
 Tool configurations and settings:
@@ -59,7 +59,7 @@ Tool configurations and settings:
 - [Main README](../README.md) - Project overview and setup
 - [Documentation](../docs/) - Comprehensive documentation
 - [Tests](../tests/) - Validation and testing scripts
-- [DevContainer Accelerator](../DevContainerAccelerator/) - PowerShell module
+- [DevContainer Template Modules](../modules/) - Modular PowerShell architecture
 
 ## 📚 Additional Resources
 

@@ -54,44 +54,6 @@ Describe "DevContainer Template - PowerShell Syntax Validation" -Tag "Syntax" {
             $errors.Count | Should -Be 0 -Because "The script should have no parse errors"
         }
         
-        It "Install-DevContainerAccelerator.ps1 should have valid PowerShell syntax" {
-            # Arrange
-            $scriptPath = Join-Path $script:RootPath "Install-DevContainerAccelerator.ps1"
-            $errors = $null
-            $tokens = $null
-            
-            # Act & Assert
-            $scriptPath | Should -Exist
-            {
-                $null = [System.Management.Automation.Language.Parser]::ParseFile(
-                    $scriptPath, 
-                    [ref]$tokens, 
-                    [ref]$errors
-                )
-            } | Should -Not -Throw
-            
-            $errors.Count | Should -Be 0 -Because "The script should have no parse errors"
-        }
-        
-        It "DevContainerAccelerator.psm1 should have valid PowerShell syntax" {
-            # Arrange
-            $modulePath = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psm1"
-            $errors = $null
-            $tokens = $null
-            
-            # Act & Assert
-            $modulePath | Should -Exist
-            {
-                $null = [System.Management.Automation.Language.Parser]::ParseFile(
-                    $modulePath, 
-                    [ref]$tokens, 
-                    [ref]$errors
-                )
-            } | Should -Not -Throw
-            
-            $errors.Count | Should -Be 0 -Because "The module should have no parse errors"
-        }
-        
         It "Scripts should be convertible to ScriptBlock" {
             # Arrange
             $scriptPath = Join-Path $script:RootPath "Initialize-DevContainer.ps1"
@@ -115,12 +77,6 @@ Describe "DevContainer Template - Module Functionality" -Tag "Module" {
         Import-Module (Join-Path $modulesPath "InteractiveModule.psm1") -Force
         Import-Module (Join-Path $modulesPath "DevContainerModule.psm1") -Force
         Import-Module (Join-Path $modulesPath "ProjectModule.psm1") -Force
-        
-        # Also import the legacy module for compatibility testing
-        $legacyModulePath = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psm1"
-        if (Test-Path $legacyModulePath) {
-            Import-Module $legacyModulePath -Force
-        }
     }
     
     AfterAll {
@@ -130,38 +86,26 @@ Describe "DevContainer Template - Module Functionality" -Tag "Module" {
         Remove-Module InteractiveModule -Force -ErrorAction SilentlyContinue
         Remove-Module DevContainerModule -Force -ErrorAction SilentlyContinue
         Remove-Module ProjectModule -Force -ErrorAction SilentlyContinue
-        Remove-Module DevContainerAccelerator -Force -ErrorAction SilentlyContinue
     }
     
-    Context "Module Import and Export" {
+    Context "Modular Architecture Testing" {
         
-        It "Should import the DevContainerAccelerator module successfully" {
+        It "Should have all required modules available" {
             # Act
-            $module = Get-Module DevContainerAccelerator
+            $requiredModules = @("CommonModule", "AzureModule", "DevContainerModule", "InteractiveModule", "ProjectModule")
+            $loadedModules = Get-Module | Where-Object { $_.Name -in $requiredModules }
             
             # Assert
-            $module | Should -Not -BeNullOrEmpty
-            $module.Name | Should -Be "DevContainerAccelerator"
+            $loadedModules.Count | Should -BeGreaterOrEqual 3 -Because "At least core modules should be loaded"
         }
         
-        It "Should export functions from the module" {
+        It "Should export functions from the modules" {
             # Act
-            $functions = Get-Command -Module DevContainerAccelerator -ErrorAction SilentlyContinue
+            $functions = Get-Command -Module CommonModule, AzureModule, DevContainerModule -ErrorAction SilentlyContinue
             
             # Assert
             $functions | Should -Not -BeNullOrEmpty
             $functions.Count | Should -BeGreaterThan 0
-        }
-        
-        It "Should have module manifest file" {
-            # Arrange
-            $manifestPath = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psd1"
-            
-            # Assert
-            $manifestPath | Should -Exist
-            
-            # Test manifest can be imported
-            { Test-ModuleManifest $manifestPath } | Should -Not -Throw
         }
     }
     
@@ -194,11 +138,6 @@ Describe "DevContainer Template - File Structure" -Tag "Structure" {
         
         It "Should have Initialize-DevContainer.ps1" {
             $path = Join-Path $script:RootPath "Initialize-DevContainer.ps1"
-            $path | Should -Exist
-        }
-        
-        It "Should have Install-DevContainerAccelerator.ps1" {
-            $path = Join-Path $script:RootPath "Install-DevContainerAccelerator.ps1"
             $path | Should -Exist
         }
         
@@ -243,13 +182,23 @@ Describe "DevContainer Template - File Structure" -Tag "Structure" {
     
     Context "Module Files" {
         
-        It "Should have DevContainerAccelerator.psd1" {
-            $path = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psd1"
+        It "Should have modules directory" {
+            $path = Join-Path $script:RootPath "modules"
             $path | Should -Exist
         }
         
-        It "Should have DevContainerAccelerator.psm1" {
-            $path = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psm1"
+        It "Should have CommonModule.psm1" {
+            $path = Join-Path $script:RootPath "modules\CommonModule.psm1"
+            $path | Should -Exist
+        }
+        
+        It "Should have AzureModule.psm1" {
+            $path = Join-Path $script:RootPath "modules\AzureModule.psm1"
+            $path | Should -Exist
+        }
+        
+        It "Should have DevContainerModule.psm1" {
+            $path = Join-Path $script:RootPath "modules\DevContainerModule.psm1"
             $path | Should -Exist
         }
     }

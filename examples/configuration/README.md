@@ -222,8 +222,9 @@ The configuration files integrate with VSCode tasks:
 
 ### PowerShell Module Integration
 ```powershell
-# Use with DevContainer Accelerator
-Import-Module ../DevContainerAccelerator
+# Use with DevContainer Template modules
+Import-Module ../modules/CommonModule.psm1
+Import-Module ../modules/AzureModule.psm1
 
 # Run PSRule analysis through module
 Invoke-AzureBestPracticesValidation -Path . -OutputFormat Json

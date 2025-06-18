@@ -3,11 +3,11 @@
 
 <#
 .SYNOPSIS
-    Comprehensive test runner for DevContainer Accelerator
+    Comprehensive test runner for DevContainer Template
 
 .DESCRIPTION
-    Runs all unit and integration tests for the DevContainer Accelerator modules
-    and provides detailed reporting.
+    Runs all unit and integration tests for the DevContainer Template modules
+    and provides detailed reporting for Infrastructure as Code development environments.
 #>
 
 [CmdletBinding()]
@@ -36,7 +36,7 @@ if (-not (Test-Path $OutputPath)) {
     New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
 }
 
-Write-Host "🧪 DevContainer Accelerator Test Runner" -ForegroundColor Blue
+Write-Host "🧪 DevContainer Template Test Runner" -ForegroundColor Blue
 Write-Host "═══════════════════════════════════════════" -ForegroundColor Blue
 
 # Configure test paths

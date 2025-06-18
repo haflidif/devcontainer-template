@@ -6,7 +6,7 @@
 
 .DESCRIPTION
     This script sets up a complete DevContainer environment for Terraform and/or Bicep development.
-    It copies the necessary DevContainer files, creates a customized environment configuration,
+    It copies the necessary DevContainer files, creates a customized environme    Write-ColorOutput "🏗️  DevContainer Template for Infrastructure as Code" "Blue"t configuration,
     and optionally initializes the project with example files.
 
 .PARAMETER ProjectPath
@@ -544,7 +544,7 @@ try {
     # Show next steps
     Show-NextSteps -ProjectPath $projectPath -ProjectType $ProjectType -BackendInfo $backendInfo
     
-    Write-ColorOutput "`n🎯 DevContainer Accelerator completed successfully!" "Green"
+    Write-ColorOutput "`n🎯 DevContainer Template setup completed successfully!" "Green"
 }
 catch {
     Write-Host "`n❌ Error: $($_.Exception.Message)" -ForegroundColor Red

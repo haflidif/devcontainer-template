@@ -35,7 +35,7 @@ cd devcontainer-template
 
 ### 4. Explore PowerShell Automation
 - Review [../powershell/](../powershell/) examples
-- Learn backend management with the DevContainer Accelerator module
+- Learn backend management with the DevContainer Template modules
 
 ## 🔧 Prerequisites
 

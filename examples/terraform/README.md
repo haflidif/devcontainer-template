@@ -85,8 +85,8 @@ storage_tier     = "Standard"
 The DevContainer is pre-configured to support Azure Storage backends. Use the PowerShell automation:
 
 ```powershell
-# Import the module
-Import-Module ../DevContainerAccelerator
+# Import the modules
+Import-Module ../modules/AzureModule.psm1
 
 # Create a backend
 New-TerraformBackend -StorageAccountName "mytfstate" -ResourceGroupName "tf-state-rg"

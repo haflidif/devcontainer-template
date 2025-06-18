@@ -1,12 +1,12 @@
 # PowerShell Examples
 
-This directory contains PowerShell scripts demonstrating automation capabilities and usage patterns for the DevContainer Accelerator module.
+This directory contains PowerShell scripts demonstrating automation capabilities and usage patterns for the DevContainer Template modular architecture.
 
 ## 📋 Contents
 
 ### Script Files
 - **Backend-Management-Examples.ps1** - Advanced Terraform backend management scenarios
-- **PowerShell-Usage.ps1** - DevContainer Accelerator module usage examples and patterns
+- **PowerShell-Usage.ps1** - DevContainer Template module usage examples and patterns
 
 ## 🚀 Quick Start
 

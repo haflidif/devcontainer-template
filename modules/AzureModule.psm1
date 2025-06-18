@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-    Azure management functions for DevContainer Accelerator.
+    Azure management functions for Infrastructure as Code development.
 
 .DESCRIPTION
     This module provides Azure-specific functionality including authentication,
-    storage account management, and Terraform backend configuration.
+    storage account management, and Terraform backend configuration for DevContainer environments.
 #>
 
 Import-Module -Name (Join-Path $PSScriptRoot "CommonModule.psm1") -Force
@@ -269,7 +269,7 @@ function New-AzureTerraformBackend {
             if ($ProjectName) { $tags += "ProjectName='$ProjectName'" }
             if ($Environment) { $tags += "Environment='$Environment'" }
             if ($Purpose) { $tags += "Purpose='$Purpose'" }
-            $tags += "CreatedBy='DevContainer-Accelerator'"
+            $tags += "CreatedBy='DevContainer-Template'"
             $tags += "CreatedDate='$(Get-Date -Format 'yyyy-MM-dd')'"
             $tagsString = $tags -join " "
             

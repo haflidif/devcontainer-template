@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-    DevContainer file management functions for DevContainer Accelerator.
+    DevContainer file management functions for Infrastructure as Code development.
 
 .DESCRIPTION
     This module provides DevContainer-specific functionality including file operations,
-    environment configuration, and container setup.
+    environment configuration, and container setup for Terraform and Bicep development.
 #>
 
 Import-Module -Name (Join-Path $PSScriptRoot "CommonModule.psm1") -Force

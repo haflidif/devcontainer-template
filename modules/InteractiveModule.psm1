@@ -2,10 +2,11 @@
 
 <#
 .SYNOPSIS
-    Interactive user input functions for DevContainer Accelerator.
+    Interactive user input functions for Infrastructure as Code development.
 
 .DESCRIPTION
-    This module provides interactive user input and configuration functions.
+    This module provides interactive user input and configuration functions for
+    DevContainer Template setup and configuration.
 #>
 
 Import-Module -Name (Join-Path $PSScriptRoot "CommonModule.psm1") -Force

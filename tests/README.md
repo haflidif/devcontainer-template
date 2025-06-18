@@ -96,8 +96,8 @@ The Pester tests are organized with the following tags for selective execution:
 
 ### Syntax (`-Tag "Syntax"`)
 - Parse `Initialize-DevContainer.ps1` for syntax errors
-- Parse `Install-DevContainerAccelerator.ps1` for syntax errors
-- Parse `DevContainerAccelerator.psm1` for syntax errors  
+- Parse `Initialize-DevContainer.ps1` for syntax errors
+- Parse individual module files for syntax errors
 - Test script conversion to ScriptBlock
 
 ### Module (`-Tag "Module"`)

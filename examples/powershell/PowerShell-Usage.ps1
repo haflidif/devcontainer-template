@@ -66,23 +66,29 @@ new-iac -ProjectName "new-project" -TenantId "..." -SubscriptionId "..."
 
 Write-Host $interactiveExample -ForegroundColor Yellow
 
-# Show all available commands
+# Show all available commands from loaded modules
 Write-Host "`n📋 Available Commands:" -ForegroundColor Cyan
-$commands = Get-Command -Module DevContainerAccelerator
-foreach ($cmd in $commands) {
-    Write-Host "• $($cmd.Name)" -ForegroundColor Green
-    
-    # Only show syntax for functions, not aliases
-    if ($cmd.CommandType -eq 'Function') {
-        try {
-            $syntax = (Get-Command $cmd.Name).ParameterSets[0].ToString()
-            Write-Host "  $syntax" -ForegroundColor Gray
-        } catch {
-            Write-Host "  (syntax not available)" -ForegroundColor DarkGray
+$moduleNames = @("CommonModule", "AzureModule", "DevContainerModule", "InteractiveModule", "ProjectModule")
+foreach ($moduleName in $moduleNames) {
+    $commands = Get-Command -Module $moduleName -ErrorAction SilentlyContinue
+    if ($commands) {
+        Write-Host "`n${moduleName}:" -ForegroundColor Yellow
+        foreach ($cmd in $commands) {
+            Write-Host "• $($cmd.Name)" -ForegroundColor Green
+            
+            # Only show syntax for functions, not aliases
+            if ($cmd.CommandType -eq 'Function') {
+                try {
+                    $syntax = (Get-Command $cmd.Name).ParameterSets[0].ToString()
+                    Write-Host "  $syntax" -ForegroundColor Gray
+                } catch {
+                    Write-Host "  (syntax not available)" -ForegroundColor DarkGray
+                }
+            } elseif ($cmd.CommandType -eq 'Alias') {
+                $aliasInfo = Get-Alias $cmd.Name
+                Write-Host "  -> $($aliasInfo.ResolvedCommandName)" -ForegroundColor Gray
+            }
         }
-    } elseif ($cmd.CommandType -eq 'Alias') {
-        $aliasInfo = Get-Alias $cmd.Name
-        Write-Host "  -> $($aliasInfo.ResolvedCommandName)" -ForegroundColor Gray
     }
 }
 

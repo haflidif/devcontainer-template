@@ -3,10 +3,11 @@
 
 <#
 .SYNOPSIS
-    Test runner for DevContainer Accelerator modules and scripts.
+    Test runner for DevContainer Template modules and scripts.
 
 .DESCRIPTION
-    Runs comprehensive Pester tests for all modules and integration scenarios.
+    Runs comprehensive Pester tests for all modules and integration scenarios
+    for Infrastructure as Code development environments.
     Provides detailed test results and coverage information.
 
 .PARAMETER TestType
@@ -54,7 +55,7 @@ if ($GenerateReport -and -not (Test-Path $ReportsPath)) {
     New-Item -ItemType Directory -Path $ReportsPath -Force | Out-Null
 }
 
-Write-Host "🧪 DevContainer Accelerator Test Suite" -ForegroundColor Blue
+Write-Host "🧪 DevContainer Template Test Suite" -ForegroundColor Blue
 Write-Host "═══════════════════════════════════════" -ForegroundColor Blue
 
 # Configure Pester
