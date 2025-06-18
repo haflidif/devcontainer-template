@@ -2,12 +2,12 @@
 
 BeforeAll {
     # Test paths
-    $ScriptPath = Join-Path $PSScriptRoot "..\..\Initialize-DevContainer.ps1"
-    $TestProjectPath = Join-Path $env:TEMP "DevContainerTest-$(Get-Random)"
+    $script:ScriptPath = Join-Path $PSScriptRoot "..\..\Initialize-DevContainer.ps1"
+    $script:TestProjectPath = Join-Path $env:TEMP "DevContainerTest-$(Get-Random)"
     
     # Ensure test project directory doesn't exist
-    if (Test-Path $TestProjectPath) {
-        Remove-Item $TestProjectPath -Recurse -Force
+    if (Test-Path $script:TestProjectPath) {
+        Remove-Item $script:TestProjectPath -Recurse -Force
     }
 }
 
@@ -15,14 +15,14 @@ Describe "Initialize-DevContainer Integration Tests" {
     Context "Module Import" {
         It "Should import all required modules without error" {
             # Test that the script can load without throwing errors
-            { & $ScriptPath -WhatIf } | Should -Not -Throw
+            { & $script:ScriptPath -WhatIf } | Should -Not -Throw
         }
     }
     
     Context "Parameter Validation" {
         It "Should validate GUID format for TenantId" {
             try {
-                & $ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf -ErrorAction Stop
+                & $script:ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf -ErrorAction Stop
                 # If we reach here, the script didn't throw as expected
                 $false | Should -Be $true -Because "Expected script to throw for invalid TenantId"
             }
@@ -33,7 +33,7 @@ Describe "Initialize-DevContainer Integration Tests" {
         
         It "Should validate GUID format for SubscriptionId" {
             try {
-                & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf -ErrorAction Stop
+                & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf -ErrorAction Stop
                 # If we reach here, the script didn't throw as expected
                 $false | Should -Be $true -Because "Expected script to throw for invalid SubscriptionId"
             }
@@ -46,12 +46,12 @@ Describe "Initialize-DevContainer Integration Tests" {
             # This test requires mocking some functions to avoid actual Azure calls
             Mock Test-Prerequisites { return $true } -ModuleName CommonModule
             Mock Test-Path { return $true }
-            Mock New-Item { return @{ FullName = $TestProjectPath } }
+            Mock New-Item { return @{ FullName = $script:TestProjectPath } }
             Mock Copy-Item { return $true }
             Mock Set-Content { return $true }
             
             # Test should not fail due to missing ProjectName
-            $result = & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectPath $TestProjectPath 2>&1
+            $result = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectPath $script:TestProjectPath 2>&1
             
             # Should not contain ProjectName validation error
             $result | Should -Not -Match "ProjectName is required"
@@ -61,13 +61,13 @@ Describe "Initialize-DevContainer Integration Tests" {
     Context "File Operations" {
         BeforeEach {
             # Create test directory
-            New-Item -ItemType Directory -Path $TestProjectPath -Force | Out-Null
+            New-Item -ItemType Directory -Path $script:TestProjectPath -Force | Out-Null
         }
         
         AfterEach {
             # Clean up test directory
-            if (Test-Path $TestProjectPath) {
-                Remove-Item $TestProjectPath -Recurse -Force
+            if (Test-Path $script:TestProjectPath) {
+                Remove-Item $script:TestProjectPath -Recurse -Force
             }
         }
         
@@ -79,7 +79,7 @@ Describe "Initialize-DevContainer Integration Tests" {
             Mock Test-AzureAuthentication { return @{ id = "test" } } -ModuleName AzureModule
             
             try {
-                & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf -ErrorAction Stop
+                & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $script:TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf -ErrorAction Stop
                 # If we reach here, the script didn't throw as expected
                 $false | Should -Be $true -Because "Expected script to throw for missing template source"
             }
@@ -101,7 +101,7 @@ Describe "Initialize-DevContainer Integration Tests" {
             
             foreach ($projectName in $testCases) {
                 # Import the module to test the function directly
-                $ModulesPath = Join-Path (Split-Path $ScriptPath) "modules"
+                $ModulesPath = Join-Path (Split-Path $script:ScriptPath) "modules"
                 Import-Module (Join-Path $ModulesPath "CommonModule.psm1") -Force
                 Import-Module (Join-Path $ModulesPath "AzureModule.psm1") -Force
                 
@@ -118,7 +118,7 @@ Describe "Initialize-DevContainer Integration Tests" {
 
 AfterAll {
     # Final cleanup
-    if (Test-Path $TestProjectPath) {
-        Remove-Item $TestProjectPath -Recurse -Force -ErrorAction SilentlyContinue
+    if (Test-Path $script:TestProjectPath) {
+        Remove-Item $script:TestProjectPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
