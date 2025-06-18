@@ -32,19 +32,31 @@ Describe "Initialize-DevContainer Integration Tests" {
     
     Context "Parameter Validation" {
         It "Should validate GUID format for TenantId" {
-            # Capture all output from the script execution including Write-Host
-            $output = & $script:ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf *>&1 | Out-String
+            # Test parameter validation without WhatIf mode to ensure validation logic works
+            $output = & $script:ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" *>&1 | Out-String
             
             # Check that the expected error message appears in the output
             $output | Should -Match "Valid Azure Tenant ID is required"
         }
         
         It "Should validate GUID format for SubscriptionId" {
-            # Capture all output from the script execution including Write-Host
-            $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf *>&1 | Out-String
+            # Test parameter validation without WhatIf mode to ensure validation logic works
+            $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" *>&1 | Out-String
             
             # Check that the expected error message appears in the output
             $output | Should -Match "Valid Azure Subscription ID is required"
+        }
+        
+        It "Should skip validation in WhatIf mode and allow script to run without credentials" {
+            # Test that WhatIf mode works without providing Azure credentials
+            $output = & $script:ScriptPath -ProjectName "test-project" -Location "West Europe" -WhatIf *>&1 | Out-String
+            
+            # Should contain WhatIf mode indicator and dummy credential messages
+            $output | Should -Match "WhatIf/DryRun Mode"
+            $output | Should -Match "WhatIf mode: Using dummy"
+            # Should NOT contain validation error messages
+            $output | Should -Not -Match "Valid Azure Tenant ID is required"
+            $output | Should -Not -Match "Valid Azure Subscription ID is required"
         }
         
         It "Should use directory name as ProjectName when not provided" {
