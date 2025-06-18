@@ -195,7 +195,7 @@ The PowerShell module can be configured via parameters or configuration files:
 
 #### Default Configuration
 ```powershell
-# Default settings in DevContainerAccelerator.psm1
+# Default settings in modular architecture
 $script:DefaultConfig = @{
     TerraformVersion = "1.6.0"
     BicepVersion = "0.22.6"
@@ -389,19 +389,26 @@ RUN apt-get update && apt-get install -y \
 COPY custom-configs/ /etc/
 ```
 
-### Multi-Stage Configuration
+### Multi-Stage Configuration with Modular Approach
 
-For complex projects, use staged configuration:
+For complex projects, use modular staged configuration:
 
 ```powershell
+# Import required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+
 # Stage 1: Basic setup
-.\Initialize-DevContainer.ps1 -ProjectName "my-project" -Stage "basic"
+New-ProjectConfiguration -ProjectName "my-project" -ConfigStage "basic"
+Initialize-DevContainer -ProjectPath . -ProjectType "terraform"
 
 # Stage 2: Add advanced features
-.\Initialize-DevContainer.ps1 -ProjectName "my-project" -Stage "advanced" -AddFeatures @("monitoring", "logging")
+Set-ProjectFeatures -Features @("monitoring", "logging", "security")
+Update-DevContainerConfig -AddFeatures @("monitoring", "logging")
 
 # Stage 3: Production readiness
-.\Initialize-DevContainer.ps1 -ProjectName "my-project" -Stage "production" -EnableSecurity
+Enable-ProductionFeatures -ProjectPath . -EnableSecurity
+Test-ProjectConfiguration -ProjectPath . -ValidationLevel "Production"
 ```
 
 ### Custom Validation Rules

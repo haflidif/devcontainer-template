@@ -597,7 +597,9 @@ Test-TerraformBackend -SubscriptionId "your-subscription-id" `
                      -Verbose
 
 # Debug module loading
-Import-Module DevContainerAccelerator -Verbose -Force
+Import-Module .\modules\ProjectModule.psm1 -Verbose -Force
+Import-Module .\modules\DevContainerModule.psm1 -Verbose -Force
+Import-Module .\modules\AzureModule.psm1 -Verbose -Force
 
 # Get detailed error information
 $Error[0] | Format-List * -Force

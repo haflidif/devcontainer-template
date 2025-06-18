@@ -263,21 +263,23 @@ Copy-Item examples/configuration/tasks.json .vscode/tasks.json
 
 #### Force Module Reload
 ```powershell
-# Remove and re-import module
-Remove-Module DevContainerAccelerator -Force -ErrorAction SilentlyContinue
-Import-Module .\DevContainerAccelerator\DevContainerAccelerator.psm1 -Force
+# Force reload modules
+Import-Module .\modules\ProjectModule.psm1 -Force
+Import-Module .\modules\DevContainerModule.psm1 -Force
+Import-Module .\modules\AzureModule.psm1 -Force
 
 # Verify functions are available
-Get-Command -Module DevContainerAccelerator
+Get-Command -Module ProjectModule
+Get-Command -Module DevContainerModule
+Get-Command -Module AzureModule
 ```
 
 #### Check Module Path
 ```powershell
-# Verify module exists
-Test-Path .\DevContainerAccelerator\DevContainerAccelerator.psm1
-
-# Check module manifest
-Test-ModuleManifest .\DevContainerAccelerator\DevContainerAccelerator.psd1
+# Verify modules exist
+Test-Path .\modules\ProjectModule.psm1
+Test-Path .\modules\DevContainerModule.psm1
+Test-Path .\modules\AzureModule.psm1
 ```
 
 #### Install Dependencies
@@ -324,15 +326,17 @@ Install-Module -Name Az.Storage -Force
 
 #### Profile Startup Time
 ```powershell
-# Measure import time
-Measure-Command { Import-Module .\DevContainerAccelerator -Force }
+# Measure import time for each module
+Measure-Command { Import-Module .\modules\ProjectModule.psm1 -Force }
+Measure-Command { Import-Module .\modules\DevContainerModule.psm1 -Force }
+Measure-Command { Import-Module .\modules\AzureModule.psm1 -Force }
 ```
 
 #### Optimize Module Loading
 ```powershell
 # Disable unnecessary features during development
 $env:DEVCONTAINER_SKIP_CHECKS = "true"
-Import-Module .\DevContainerAccelerator -Force
+Import-Module .\modules\ProjectModule.psm1 -Force
 ```
 
 ## Debugging Techniques
@@ -348,14 +352,18 @@ $DebugPreference = "Continue"
 .\tests\Test-DevContainer.ps1 -Mode Full -Verbose -Debug
 ```
 
-### Trace Script Execution
+### Trace Script Execution with Modular Architecture
 
 ```powershell
 # Enable PowerShell script tracing
 Set-PSDebug -Trace 2
 
-# Run script with tracing
-.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" -SubscriptionId "your-subscription-id"
+# Test individual modules
+Import-Module .\modules\ProjectModule.psm1 -Verbose
+Import-Module .\modules\DevContainerModule.psm1 -Verbose
+
+# Test modular functions
+Test-ProjectConfiguration -ProjectPath . -Verbose
 
 # Disable tracing
 Set-PSDebug -Off
@@ -369,18 +377,19 @@ Invoke-Pester -Path ".\tests\DevContainer.Tests.ps1" `
               -Tag "Syntax" `
               -Debug
 
-# Debug individual test blocks
-Invoke-Pester -Path ".\tests\DevContainer.Tests.ps1" `
-              -TestName "Should validate PowerShell syntax" `
+# Debug individual module tests
+Invoke-Pester -Path ".\tests\unit\ProjectModule.Tests.ps1" `
+              -TestName "Should validate project configuration" `
               -Debug
 ```
 
 ### Capture Error Details
 
 ```powershell
-# Capture and analyze errors
+# Capture and analyze errors with modular functions
 try {
-    .\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" -SubscriptionId "your-subscription-id"
+    Import-Module .\modules\ProjectModule.psm1
+    New-ProjectConfiguration -ProjectName "test" -TenantId "your-tenant-id" -SubscriptionId "your-subscription-id"
 } catch {
     $error[0] | Format-List * -Force
     $error[0].Exception | Format-List * -Force
@@ -471,7 +480,9 @@ If all else fails, reset to a clean state:
 
 ```powershell
 # 1. Remove all modules
-Get-Module DevContainerAccelerator | Remove-Module -Force
+Get-Module ProjectModule | Remove-Module -Force
+Get-Module DevContainerModule | Remove-Module -Force
+Get-Module AzureModule | Remove-Module -Force
 Get-Module Pester | Remove-Module -Force
 
 # 2. Clean PowerShell cache
@@ -480,9 +491,11 @@ Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\PowerShell\ModuleAnalysis
 # 3. Restart PowerShell session
 exit
 
-# 4. Reinstall dependencies
+# 4. Reinstall dependencies and re-import modules
 Install-Module -Name Pester -Force -SkipPublisherCheck
-.\Install-DevContainerAccelerator.ps1
+Import-Module .\modules\ProjectModule.psm1 -Force
+Import-Module .\modules\DevContainerModule.psm1 -Force
+Import-Module .\modules\AzureModule.psm1 -Force
 
 # 5. Validate setup
 .\tests\Test-DevContainer.ps1 -Mode Quick

@@ -3,39 +3,48 @@ title: "Examples"
 linkTitle: "Examples"
 weight: 4
 description: >
-  Practical examples and use cases for Terraform, Bicep, and PowerShell automation.
+  Practical examples and use cases for Terraform, Bicep, and PowerShell automation using the modular architecture.
 ---
 
 # Examples and Use Cases
 
-The DevContainer template includes comprehensive examples for common Infrastructure as Code scenarios and automation patterns.
+The DevContainer template includes comprehensive examples for common Infrastructure as Code scenarios and automation patterns using the new modular PowerShell architecture.
 
 ## Overview
 
 The examples are organized by technology and use case:
 
-- **[Getting Started Examples](#getting-started)** - Basic project setup
+- **[Getting Started Examples](#getting-started)** - Basic project setup with modular PowerShell
 - **[Terraform Examples](#terraform)** - Infrastructure as Code with Terraform
 - **[Bicep Examples](#bicep)** - Azure native Infrastructure as Code
 - **[ARM Templates](#arm-templates)** - Azure Resource Manager templates
-- **[PowerShell Automation](#powershell-automation)** - Advanced automation scenarios
+- **[PowerShell Automation](#powershell-automation)** - Advanced automation scenarios with modules
 - **[Configuration Examples](#configuration)** - Tool and environment configuration
 
 ## Getting Started
 
-### Quick Project Setup
+### Quick Project Setup with Modular PowerShell
 
-Simple project initialization:
+Simple project initialization using the new modular approach:
 
 ```powershell
 # Clone template and initialize new project
 git clone https://github.com/haflidif/devcontainer-template.git my-new-project
 cd my-new-project
 
-# Initialize with basic settings
-.\Initialize-DevContainer.ps1 -ProjectName "my-app" `
-                             -TenantId "your-tenant-id" `
-                             -SubscriptionId "your-subscription-id"
+# Import required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+Import-Module .\modules\AzureModule.psm1
+
+# Initialize project using modular functions
+New-ProjectConfiguration -ProjectName "my-app" `
+                        -TenantId "your-tenant-id" `
+                        -SubscriptionId "your-subscription-id" `
+                        -Environment "dev"
+
+# Set up DevContainer
+Initialize-DevContainer -ProjectPath . -ProjectType "terraform"
 
 # Validate setup
 .\tests\Test-DevContainer.ps1 -Mode Quick
@@ -43,26 +52,30 @@ cd my-new-project
 
 ### Multi-Environment Setup
 
-Setting up development, staging, and production environments:
+Setting up development, staging, and production environments with modular functions:
 
 ```powershell
+# Import required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\AzureModule.psm1
+
 # Development environment
-.\Initialize-DevContainer.ps1 -ProjectName "my-app" `
-                             -Environment "dev" `
-                             -Location "eastus" `
-                             -CreateBackend
+New-ProjectConfiguration -ProjectName "my-app" `
+                        -Environment "dev" `
+                        -Location "eastus"
+New-TerraformBackend -Environment "dev" -Location "eastus"
 
 # Staging environment  
-.\Initialize-DevContainer.ps1 -ProjectName "my-app" `
-                             -Environment "staging" `
-                             -Location "westus" `
-                             -CreateBackend
+New-ProjectConfiguration -ProjectName "my-app" `
+                        -Environment "staging" `
+                        -Location "westus"
+New-TerraformBackend -Environment "staging" -Location "westus"
 
 # Production environment
-.\Initialize-DevContainer.ps1 -ProjectName "my-app" `
-                             -Environment "prod" `
-                             -Location "centralus" `
-                             -CreateBackend
+New-ProjectConfiguration -ProjectName "my-app" `
+                        -Environment "prod" `
+                        -Location "centralus"
+New-TerraformBackend -Environment "prod" -Location "centralus"
 ```
 
 ## Terraform Examples
@@ -339,15 +352,17 @@ output subnetIds array = [for i in range(0, length(subnets)): virtualNetwork.pro
 
 ## PowerShell Automation
 
-### Backend Management Examples
+### Backend Management Examples with Modular Architecture
 
 **File: `examples/powershell/Backend-Management-Examples.ps1`**
 
 ```powershell
-# Import the DevContainer Accelerator module
-Import-Module .\DevContainerAccelerator -Force
+# Import the modular PowerShell architecture
+Import-Module .\modules\AzureModule.psm1
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\CommonModule.psm1
 
-# Example 1: Create backend for new project
+# Example 1: Create backend for new project using modular functions
 $backendParams = @{
     SubscriptionId = "your-subscription-id"
     TenantId = "your-tenant-id"
@@ -359,7 +374,7 @@ $backendParams = @{
 $backend = New-TerraformBackend @backendParams
 Write-Host "Backend created: $($backend.StorageAccountName)"
 
-# Example 2: Manage multiple environments
+# Example 2: Manage multiple environments with modular approach
 $environments = @("dev", "staging", "prod")
 $locations = @{
     "dev" = "eastus"
@@ -397,14 +412,43 @@ $backend = New-TerraformBackend @params
 Write-Host "Cross-subscription backend: $($backend.StorageAccountName)"
 ```
 
-### Project Automation Examples
+### Project Automation Examples with Modules
 
 **File: `examples/powershell/PowerShell-Usage.ps1`**
 
 ```powershell
+# Import all required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+Import-Module .\modules\AzureModule.psm1
+Import-Module .\modules\InteractiveModule.psm1
+
 # Advanced project setup with validation
 $projectConfig = @{
     ProjectName = "enterprise-app"
+    TenantId = "your-tenant-id"
+    SubscriptionId = "your-subscription-id"
+    Environment = "prod"
+    Location = "centralus"
+    ProjectType = "terraform"
+}
+
+# Create project configuration
+New-ProjectConfiguration @projectConfig
+
+# Initialize DevContainer with specific features
+Initialize-DevContainer -ProjectPath . -ProjectType "terraform" -IncludeExamples
+
+# Set up Azure backend with advanced configuration
+New-TerraformBackend -ProjectName $projectConfig.ProjectName `
+                    -Environment $projectConfig.Environment `
+                    -Location $projectConfig.Location `
+                    -EnableEncryption `
+                    -EnableVersioning
+
+# Validate everything is working
+Test-ProjectConfiguration -ProjectPath . -Verbose
+```
     TenantId = "your-tenant-id"
     SubscriptionId = "your-subscription-id"
     ProjectType = "both"  # Terraform and Bicep
@@ -498,11 +542,18 @@ profiles:
 Complete infrastructure for a web application with database:
 
 ```powershell
-# Setup project
-.\Initialize-DevContainer.ps1 -ProjectName "webapp" `
-                             -ProjectType "terraform" `
-                             -Environment "prod" `
-                             -CreateBackend
+# Import required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+Import-Module .\modules\AzureModule.psm1
+
+# Setup project using modular functions
+New-ProjectConfiguration -ProjectName "webapp" `
+                        -ProjectType "terraform" `
+                        -Environment "prod"
+
+Initialize-DevContainer -ProjectPath . -ProjectType "terraform"
+New-TerraformBackend -ProjectName "webapp" -Environment "prod"
 
 # Deploy infrastructure
 cd examples/terraform/multi-tier-app
@@ -516,11 +567,17 @@ terraform apply -var-file="prod.tfvars"
 Infrastructure for a containerized microservices platform:
 
 ```powershell
-# Setup with Kubernetes support
-.\Initialize-DevContainer.ps1 -ProjectName "microservices" `
-                             -ProjectType "both" `
-                             -Environment "prod" `
-                             -AddFeatures @("kubernetes", "monitoring")
+# Import required modules
+Import-Module .\modules\ProjectModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+
+# Setup with advanced configuration
+New-ProjectConfiguration -ProjectName "microservices" `
+                        -ProjectType "bicep" `
+                        -Environment "prod" `
+                        -AdditionalFeatures @("kubernetes", "monitoring")
+
+Initialize-DevContainer -ProjectPath . -ProjectType "bicep" -IncludeExamples
 
 # Deploy using Bicep
 cd examples/bicep/microservices

@@ -149,8 +149,8 @@ To verify your setup is working correctly:
 ### Quick Health Check
 
 ```powershell
-# Validate DevContainer setup
-.\Validate-DevContainerAccelerator.ps1
+# Validate DevContainer setup using modular testing
+.\tests\Test-DevContainer.ps1 -Mode Quick
 
 # Expected output: All validations should pass ✅
 ```
