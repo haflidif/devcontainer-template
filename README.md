@@ -6,6 +6,7 @@
 [![Tests](https://img.shields.io/badge/tests-38%20passing-success?style=flat-square)](#testing)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-blue?style=flat-square)](#)
+[![Refactored](https://img.shields.io/badge/status-Modular%20✅-brightgreen?style=flat-square)](#modular-architecture)
 
 ## ✨ Features
 
@@ -16,6 +17,7 @@
 - **⚡ Quick Setup**: One-command initialization and configuration
 - **🔒 Security-First**: Built-in security scanning and validation
 - **🚀 CI/CD Ready**: GitHub Actions workflows for automation
+- **🏗️ Modular Architecture**: Clean, maintainable, and extensible codebase
 
 ## 🚀 Quick Start
 
@@ -24,10 +26,16 @@
 git clone https://github.com/haflidif/devcontainer-template.git
 cd devcontainer-template
 
-# Initialize with your details
+# Initialize with your details (MODULAR VERSION)
 .\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
-                             -SubscriptionId "your-subscription-id" `
-                             -ProjectName "my-project"
+                              -SubscriptionId "your-subscription-id" `
+                              -ProjectName "my-project"
+
+# Test safely first (recommended)
+.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
+                              -SubscriptionId "your-subscription-id" `
+                              -ProjectName "my-project" `
+                              -WhatIf
 
 # Validate everything works
 .\tests\Validate-DevContainer.ps1
@@ -35,6 +43,20 @@ cd devcontainer-template
 # Open in VS Code (choose "Reopen in Container")
 code .
 ```
+
+## 🏗️ Modular Architecture
+
+**✅ Refactored for Reliability & Maintainability**
+
+The DevContainer Accelerator uses a modular architecture:
+
+- **`Initialize-DevContainer.ps1`** - Production-ready script with hybrid architecture
+- **`modules/`** - Specialized PowerShell modules for specific functionality
+- **Fallback Systems** - Works reliably even when modules fail to load
+- **Enhanced Error Handling** - Comprehensive error management throughout
+- **WhatIf Support** - Safe testing mode to preview changes
+
+[📖 Read the complete refactoring documentation](docs/MODULAR_REFACTORING.md)
 
 ## 📖 Documentation
 

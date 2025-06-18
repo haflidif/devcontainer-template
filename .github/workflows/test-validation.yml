@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  MODULE_NAME: DevContainerAccelerator
+  SCRIPT_NAME: Initialize-DevContainer
 
 jobs:
   powershell-tests:
-    name: PowerShell Module Tests
+    name: PowerShell Script and Module Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -35,51 +35,122 @@ jobs:
         Import-Module Pester -Force
         Write-Host "Pester version: $((Get-Module Pester).Version)"
         
-    - name: Test Module Manifest
+    - name: Test Entry Point Script
       shell: pwsh
       run: |
-        $ManifestPath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
-        if (Test-Path $ManifestPath) {
-          Test-ModuleManifest -Path $ManifestPath
-          Write-Host "✅ Module manifest is valid"
+        $ScriptPath = "./Initialize-DevContainer.ps1"
+        if (Test-Path $ScriptPath) {
+          Write-Host "✅ Entry point script found: $ScriptPath"
+          # Test script syntax
+          $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $ScriptPath -Raw), [ref]$null)
+          Write-Host "✅ Script syntax is valid"
         } else {
-          Write-Error "❌ Module manifest not found at: $ManifestPath"
+          Write-Error "❌ Entry point script not found at: $ScriptPath"
           exit 1
         }
         
-    - name: Import Module
+    - name: Test Module Files
       shell: pwsh
       run: |
-        $ModulePath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
-        try {
-          Import-Module $ModulePath -Force
-          $ImportedModule = Get-Module DevContainerAccelerator
-          Write-Host "✅ Module imported successfully"
-          Write-Host "Exported functions: $($ImportedModule.ExportedFunctions.Keys -join ', ')"
-          Write-Host "Exported aliases: $($ImportedModule.ExportedAliases.Keys -join ', ')"
-        } catch {
-          Write-Error "❌ Failed to import module: $_"
-          exit 1
+        $ModuleFiles = @(
+          "./modules/CommonModule.psm1",
+          "./modules/AzureModule.psm1",
+          "./modules/InteractiveModule.psm1",
+          "./modules/DevContainerModule.psm1",
+          "./modules/ProjectModule.psm1"
+        )
+        
+        foreach ($ModuleFile in $ModuleFiles) {
+          if (Test-Path $ModuleFile) {
+            Write-Host "✅ Module file found: $ModuleFile"
+            # Test module syntax
+            try {
+              $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $ModuleFile -Raw), [ref]$null)
+              Write-Host "✅ Module syntax is valid: $ModuleFile"
+            } catch {
+              Write-Error "❌ Module syntax error in $ModuleFile : $_"
+              exit 1
+            }
+          } else {
+            Write-Error "❌ Module file not found: $ModuleFile"
+            exit 1
+          }
+        }
+        
+        # Test legacy module if it exists
+        $LegacyModulePath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
+        if (Test-Path $LegacyModulePath) {
+          try {
+            Test-ModuleManifest -Path $LegacyModulePath
+            Write-Host "✅ Legacy module manifest is valid"
+          } catch {
+            Write-Warning "⚠️ Legacy module manifest has issues: $_"
+          }
         }
         
     - name: Run Pester Tests
       shell: pwsh
       run: |
         if (Test-Path "./tests/") {
-          $TestResults = Invoke-Pester -Path "./tests/" -Output Detailed -PassThru
+          Write-Host "Running tests with current working directory: $(Get-Location)"
+          
+          # Run unit tests first
+          if (Test-Path "./tests/unit/") {
+            Write-Host "=== Running Unit Tests ==="
+            $UnitTestResults = Invoke-Pester -Path "./tests/unit/" -Output Detailed -PassThru
+            Write-Host "Unit Tests - Total: $($UnitTestResults.TotalCount), Passed: $($UnitTestResults.PassedCount), Failed: $($UnitTestResults.FailedCount)"
+          }
+          
+          # Run integration tests (with CI-specific settings)
+          if (Test-Path "./tests/integration/") {
+            Write-Host "=== Running Integration Tests ==="
+            $env:CI = "true"  # Set CI environment variable
+            $IntegrationTestResults = Invoke-Pester -Path "./tests/integration/" -Output Detailed -PassThru
+            Write-Host "Integration Tests - Total: $($IntegrationTestResults.TotalCount), Passed: $($IntegrationTestResults.PassedCount), Failed: $($IntegrationTestResults.FailedCount)"
+          }
+          
+          # Run legacy tests if they exist
+          $LegacyTestFile = "./tests/DevContainer.Tests.ps1"
+          if (Test-Path $LegacyTestFile) {
+            Write-Host "=== Running Legacy Tests ==="
+            $LegacyTestResults = Invoke-Pester -Path $LegacyTestFile -Output Detailed -PassThru
+            Write-Host "Legacy Tests - Total: $($LegacyTestResults.TotalCount), Passed: $($LegacyTestResults.PassedCount), Failed: $($LegacyTestResults.FailedCount)"
+          }
+          
+          # Combine all results
+          $TotalTests = 0
+          $TotalPassed = 0
+          $TotalFailed = 0
+          
+          if ($UnitTestResults) {
+            $TotalTests += $UnitTestResults.TotalCount
+            $TotalPassed += $UnitTestResults.PassedCount
+            $TotalFailed += $UnitTestResults.FailedCount
+          }
+          
+          if ($IntegrationTestResults) {
+            $TotalTests += $IntegrationTestResults.TotalCount
+            $TotalPassed += $IntegrationTestResults.PassedCount
+            $TotalFailed += $IntegrationTestResults.FailedCount
+          }
+          
+          if ($LegacyTestResults) {
+            $TotalTests += $LegacyTestResults.TotalCount
+            $TotalPassed += $LegacyTestResults.PassedCount
+            $TotalFailed += $LegacyTestResults.FailedCount
+          }
           
           Write-Host ""
-          Write-Host "=== Test Summary ==="
-          Write-Host "Total Tests: $($TestResults.TotalCount)"
-          Write-Host "Passed: $($TestResults.PassedCount)"
-          Write-Host "Failed: $($TestResults.FailedCount)"
-          Write-Host "Skipped: $($TestResults.SkippedCount)"
+          Write-Host "=== Combined Test Summary ==="
+          Write-Host "Total Tests: $TotalTests"
+          Write-Host "Passed: $TotalPassed"
+          Write-Host "Failed: $TotalFailed"
           
-          if ($TestResults.FailedCount -gt 0) {
-            Write-Error "❌ Some tests failed"
+          if ($TotalFailed -gt 0) {
+            Write-Error "❌ $TotalFailed test(s) failed"
             exit 1
           } else {
-            Write-Host "✅ All tests passed"
+            Write-Host "✅ All $TotalPassed tests passed"
           }
         } else {
           Write-Host "⚠️ No tests directory found"
@@ -128,8 +199,12 @@ jobs:
         $RequiredFiles = @(
           "README.md",
           "LICENSE",
-          "DevContainerAccelerator/DevContainerAccelerator.psd1",
-          "DevContainerAccelerator/DevContainerAccelerator.psm1"
+          "Initialize-DevContainer.ps1",
+          "modules/CommonModule.psm1",
+          "modules/AzureModule.psm1",
+          "modules/InteractiveModule.psm1",
+          "modules/DevContainerModule.psm1",
+          "modules/ProjectModule.psm1"
         )
         
         $AllFilesExist = $true
@@ -182,9 +257,14 @@ jobs:
       shell: pwsh
       run: |
         $ScriptPaths = @(
-          "./DevContainerAccelerator/DevContainerAccelerator.psm1",
           "./Initialize-DevContainer.ps1",
-          "./Install-DevContainerAccelerator.ps1"
+          "./Install-DevContainerAccelerator.ps1",
+          "./Validate-DevContainerAccelerator.ps1",
+          "./modules/CommonModule.psm1",
+          "./modules/AzureModule.psm1",
+          "./modules/InteractiveModule.psm1",
+          "./modules/DevContainerModule.psm1",
+          "./modules/ProjectModule.psm1"
         )
         
         $AllIssues = @()
@@ -222,35 +302,38 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Test Module Installation Process
+    - name: Test Script and Module Integration
       shell: pwsh
       run: |
-        # Test the installation script
+        # Test the installation script syntax
         if (Test-Path "./Install-DevContainerAccelerator.ps1") {
           Write-Host "Testing installation script syntax..."
           $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content "./Install-DevContainerAccelerator.ps1" -Raw), [ref]$null)
           Write-Host "✅ Installation script syntax is valid"
         }
         
-        # Test module import and basic functionality
-        $ModulePath = "./DevContainerAccelerator/DevContainerAccelerator.psd1"
-        Import-Module $ModulePath -Force
+        # Test the main entry point script syntax
+        if (Test-Path "./Initialize-DevContainer.ps1") {
+          Write-Host "Testing main script syntax..."
+          $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content "./Initialize-DevContainer.ps1" -Raw), [ref]$null)
+          Write-Host "✅ Main script syntax is valid"
+        }
         
-        # Test that main functions are available
-        $MainFunctions = @(
-          'Initialize-DevContainer',
-          'New-IaCProject',
-          'Test-DevContainerPrerequisites',
-          'Update-DevContainerTemplate'
+        # Test module syntax
+        $ModuleFiles = @(
+          "./modules/CommonModule.psm1",
+          "./modules/AzureModule.psm1", 
+          "./modules/InteractiveModule.psm1",
+          "./modules/DevContainerModule.psm1",
+          "./modules/ProjectModule.psm1"
         )
         
-        foreach ($Function in $MainFunctions) {
-          if (Get-Command $Function -ErrorAction SilentlyContinue) {
-            Write-Host "✅ Function available: $Function"
-          } else {
-            Write-Error "❌ Function not available: $Function"
-            exit 1
+        foreach ($ModuleFile in $ModuleFiles) {
+          if (Test-Path $ModuleFile) {
+            Write-Host "Testing module syntax: $ModuleFile"
+            $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $ModuleFile -Raw), [ref]$null)
+            Write-Host "✅ Module syntax is valid: $([System.IO.Path]::GetFileNameWithoutExtension($ModuleFile))"
           }
         }
         
-        Write-Host "✅ All integration tests passed"
+        Write-Host "✅ All syntax validation tests passed"

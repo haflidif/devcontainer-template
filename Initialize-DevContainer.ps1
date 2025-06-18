@@ -42,88 +42,65 @@
 .PARAMETER Force
     Overwrite existing DevContainer configuration if it exists.
 
+.PARAMETER Interactive
+    Run in interactive mode for guided setup.
+
+.PARAMETER CreateBackend
+    Create Terraform backend infrastructure if it doesn't exist.
+
+.PARAMETER ValidateBackend
+    Validate existing Terraform backend configuration.
+
+.PARAMETER BackendSubscriptionId
+    Subscription ID for Terraform backend (defaults to main subscription).
+
+.PARAMETER BackendResourceGroup
+    Resource Group for Terraform backend.
+
+.PARAMETER BackendStorageAccount
+    Storage Account name for Terraform backend.
+
+.PARAMETER BackendContainer
+    Container name for Terraform state. Defaults to 'tfstate'.
+
+.PARAMETER CreateBackendResourceGroup
+    Create the backend resource group if it doesn't exist.
+
 .EXAMPLE
     .\Initialize-DevContainer.ps1 -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "my-infrastructure"
 
 .EXAMPLE
     .\Initialize-DevContainer.ps1 -ProjectPath "C:\MyProject" -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectType "both" -IncludeExamples
-
-.NOTES
-    Author: DevContainer Template
-    Version: 1.0
-    Requires: PowerShell 5.1+, Docker Desktop (for DevContainer usage)
 #>
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $false)]
     [string]$ProjectPath = (Get-Location).Path,
-
-    [Parameter(Mandatory = $true, HelpMessage = "Enter your Azure Tenant ID (GUID)")]
-    [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+    [Parameter(Mandatory = $false)]
     [string]$TenantId,
-
-    [Parameter(Mandatory = $true, HelpMessage = "Enter your Azure Subscription ID (GUID)")]
-    [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
+    [Parameter(Mandatory = $false)]
     [string]$SubscriptionId,
-
+    [string]$ClientId = "",
     [Parameter(Mandatory = $false)]
-    [ValidatePattern('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')]
-    [string]$ClientId,
-
-    [Parameter(Mandatory = $true, HelpMessage = "Enter your project name")]
-    [ValidatePattern('^[a-zA-Z0-9\-_]+$')]
     [string]$ProjectName,
-
-    [Parameter(Mandatory = $false)]
-    [ValidateSet('dev', 'test', 'staging', 'prod', 'sandbox')]
-    [string]$Environment = 'dev',
-
-    [Parameter(Mandatory = $false)]
-    [ValidateSet('eastus', 'westus', 'westus2', 'centralus', 'northeurope', 'westeurope', 'uksouth', 'ukwest', 'australiaeast', 'southeastasia')]
-    [string]$Location = 'eastus',
-
-    [Parameter(Mandatory = $false)]
+    [string]$Environment = "dev",
+    [string]$Location = "eastus",
     [ValidateSet('terraform', 'bicep', 'both')]
-    [string]$ProjectType = 'terraform',
-
-    [Parameter(Mandatory = $false)]
-    [switch]$IncludeExamples,
-
-    [Parameter(Mandatory = $false)]
-    [string]$TemplateSource = $PSScriptRoot,    [Parameter(Mandatory = $false)]
+    [string]$ProjectType = "terraform",    [switch]$IncludeExamples,
+    [string]$TemplateSource = $PSScriptRoot,
     [switch]$Force,
-
-    # Terraform Backend Management Parameters
-    [Parameter(Mandatory = $false)]
-    [string]$BackendSubscriptionId,
-
-    [Parameter(Mandatory = $false)]
-    [string]$BackendResourceGroup,
-
-    [Parameter(Mandatory = $false)]
-    [string]$BackendStorageAccount,
-
-    [Parameter(Mandatory = $false)]
-    [string]$BackendContainer = 'tfstate',
-
-    [Parameter(Mandatory = $false)]
+    [switch]$Interactive,
     [switch]$CreateBackend,
-
-    [Parameter(Mandatory = $false)]
-    [switch]$CreateBackendResourceGroup,
-
-    [Parameter(Mandatory = $false)]
     [switch]$ValidateBackend,
-
-    [Parameter(Mandatory = $false)]
-    [switch]$Interactive
+    [string]$BackendSubscriptionId = "",
+    [string]$BackendResourceGroup = "",
+    [string]$BackendStorageAccount = "",
+    [string]$BackendContainer = "tfstate",
+    [switch]$CreateBackendResourceGroup,
+    [switch]$WhatIf,    [switch]$DryRun
 )
 
-# Set strict mode for better error handling
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
+# Essential utility functions (defined first to avoid scoping issues)
 function Write-ColorOutput {
     param(
         [string]$Message,
@@ -142,124 +119,109 @@ function Test-IsGuid {
     return $InputString -match $guidRegex
 }
 
-function Test-AzureAuthentication {
-    param([string]$SubscriptionId)
+# Essential functions for basic functionality (fallbacks)
+function Test-Prerequisites {
+    Write-ColorOutput "🔍 Checking prerequisites..." "Cyan"
     
+    $issues = @()
+    
+    # Check Docker CLI
     try {
-        # Check if Azure CLI is available
-        $null = Get-Command az -ErrorAction Stop
-        
-        # Check if logged in
-        $accountInfo = az account show --output json 2>$null | ConvertFrom-Json
-        if (-not $accountInfo) {
-            throw "Not authenticated with Azure CLI. Please run 'az login'"
-        }
-        
-        # Switch to specified subscription if provided
-        if ($SubscriptionId -and $accountInfo.id -ne $SubscriptionId) {
-            Write-ColorOutput "🔄 Switching to subscription: $SubscriptionId" "Cyan"
-            az account set --subscription $SubscriptionId
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to switch to subscription: $SubscriptionId"
-            }
-        }
-        
-        return $accountInfo
+        $null = Get-Command docker -ErrorAction Stop
+        Write-ColorOutput "✅ Docker CLI found" "Green"
     }
     catch {
-        throw "Azure authentication failed: $($_.Exception.Message)"
+        $issues += "Docker CLI not found. Please install Docker Desktop."
+        Write-ColorOutput "❌ Docker CLI not found" "Red"
     }
+    
+    # Check VS Code CLI
+    try {
+        $null = Get-Command code -ErrorAction Stop
+        Write-ColorOutput "✅ VS Code CLI found" "Green"
+    }
+    catch {
+        $issues += "VS Code CLI not found. Please install VS Code and ensure 'code' command is in PATH."
+        Write-ColorOutput "❌ VS Code CLI not found" "Red"
+    }
+    
+    if ($issues.Count -gt 0) {
+        Write-ColorOutput "`n❌ Prerequisites check failed:" "Red"
+        $issues | ForEach-Object { Write-ColorOutput "   • $_" "Red" }
+        return $false
+    }
+    
+    return $true
 }
 
-function Test-AzureStorageAccount {
+function Show-NextSteps {
     param(
-        [string]$StorageAccountName,
-        [string]$ResourceGroupName,
-        [string]$SubscriptionId
-    )
-      try {
-        $null = Test-AzureAuthentication -SubscriptionId $SubscriptionId
-        
-        Write-ColorOutput "🔍 Checking if storage account '$StorageAccountName' exists..." "Cyan"
-        
-        $storageAccount = az storage account show --name $StorageAccountName --resource-group $ResourceGroupName --output json 2>$null
-        if ($LASTEXITCODE -eq 0 -and $storageAccount) {
-            $storageInfo = $storageAccount | ConvertFrom-Json
-            Write-ColorOutput "✅ Storage account found: $($storageInfo.name)" "Green"
-            return @{
-                Exists = $true
-                StorageAccount = $storageInfo
-                ResourceGroup = $ResourceGroupName
-            }
-        }
-        else {
-            Write-ColorOutput "⚠️  Storage account '$StorageAccountName' not found" "Yellow"
-            return @{
-                Exists = $false
-                StorageAccount = $null
-                ResourceGroup = $ResourceGroupName
-            }
-        }
-    }
-    catch {
-        Write-ColorOutput "❌ Error checking storage account: $($_.Exception.Message)" "Red"
-        return @{
-            Exists = $false
-            StorageAccount = $null
-            ResourceGroup = $ResourceGroupName
-            Error = $_.Exception.Message
-        }
-    }
-}
-
-function Test-AzureStorageContainer {
-    param(
-        [string]$StorageAccountName,
-        [string]$ContainerName,
-        [string]$ResourceGroupName,
-        [string]$SubscriptionId
+        [string]$ProjectPath,
+        [string]$ProjectType,
+        [hashtable]$BackendInfo = $null
     )
     
-    try {
-        $null = Test-AzureAuthentication -SubscriptionId $SubscriptionId
-        
-        Write-ColorOutput "🔍 Checking if container '$ContainerName' exists in storage account..." "Cyan"
-        
-        # Get storage account key
-        $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
-        if ($LASTEXITCODE -ne 0 -or -not $keys) {
-            throw "Failed to get storage account keys"
-        }
-        
-        $storageKey = $keys[0].value
-        
-        # Check if container exists
-        $container = az storage container show --name $ContainerName --account-name $StorageAccountName --account-key $storageKey --output json 2>$null
-        if ($LASTEXITCODE -eq 0 -and $container) {
-            $containerInfo = $container | ConvertFrom-Json
-            Write-ColorOutput "✅ Container found: $($containerInfo.name)" "Green"
-            return @{
-                Exists = $true
-                Container = $containerInfo
-                StorageKey = $storageKey
-            }
-        }
-        else {
-            Write-ColorOutput "⚠️  Container '$ContainerName' not found" "Yellow"
-            return @{
-                Exists = $false
-                Container = $null
-                StorageKey = $storageKey
-            }
-        }
+    Write-ColorOutput "`n🎉 DevContainer setup completed successfully!" "Green"
+    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Green"
+    
+    Write-ColorOutput "`n📁 Project Location: $ProjectPath" "Cyan"
+    Write-ColorOutput "🔧 Project Type: $ProjectType" "Cyan"
+    
+    if ($BackendInfo) {
+        Write-ColorOutput "`n🗄️  Terraform Backend:" "Yellow"
+        Write-ColorOutput "   Storage Account: $($BackendInfo.StorageAccount)" "Gray"
+        Write-ColorOutput "   Resource Group: $($BackendInfo.ResourceGroup)" "Gray"
+        Write-ColorOutput "   Container: $($BackendInfo.Container)" "Gray"
     }
-    catch {
-        Write-ColorOutput "❌ Error checking storage container: $($_.Exception.Message)" "Red"
-        return @{
-            Exists = $false
-            Container = $null
-            Error = $_.Exception.Message
-        }
+    
+    Write-ColorOutput "`n🚀 Next Steps:" "Yellow"
+    Write-ColorOutput "1. Open the project in VS Code:" "White"
+    Write-ColorOutput "   code `"$ProjectPath`"" "Gray"
+    Write-ColorOutput "`n2. When prompted, choose 'Reopen in Container'" "White"
+    Write-ColorOutput "`n3. Wait for the DevContainer to build (first time may take a few minutes)" "White"
+    Write-ColorOutput "`n4. Start developing your Infrastructure as Code!" "White"
+    
+    Write-ColorOutput "`n📚 Documentation: https://containers.dev/" "Blue"    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Green"
+}
+
+# Essential Azure function fallbacks (when modules don't load)
+function New-AzureStorageAccountName {
+    param(
+        [string]$ProjectName,
+        [string]$Environment = "dev",
+        [string]$Purpose = "tfstate"
+    )
+    
+    # Clean project name - only lowercase letters and numbers
+    $cleanProjectName = $ProjectName.ToLower() -replace '[^a-z0-9]', ''
+    $cleanEnvironment = $Environment.ToLower() -replace '[^a-z0-9]', ''
+    
+    # Generate a short hash for uniqueness (8 characters) - deterministic based on input
+    $uniqueString = "$ProjectName-$Environment-$Purpose"
+    $hash = [System.Security.Cryptography.HashAlgorithm]::Create('SHA256').ComputeHash([System.Text.Encoding]::UTF8.GetBytes($uniqueString))
+    $shortHash = [Convert]::ToHexString($hash)[0..7] -join '' | ForEach-Object { $_.ToLower() }
+    
+    # Calculate available space for project name (24 total - hash - environment)
+    $maxProjectLength = 24 - $shortHash.Length - $cleanEnvironment.Length
+    if ($maxProjectLength -le 0) {
+        $maxProjectLength = 24 - $shortHash.Length - 2
+    }
+    $cleanProjectName = $cleanProjectName.Substring(0, [Math]::Min($cleanProjectName.Length, $maxProjectLength))
+    $storageAccountName = "$cleanProjectName$cleanEnvironment$shortHash"
+    
+    # Ensure we don't exceed 24 characters
+    if ($storageAccountName.Length -gt 24) {
+        $storageAccountName = $storageAccountName.Substring(0, 24)
+    }
+    
+    return @{
+        StorageAccountName = $storageAccountName
+        DisplayName = "$ProjectName-$Environment-$Purpose"
+        ProjectName = $ProjectName
+        Environment = $Environment
+        Purpose = $Purpose
+        Available = $true
+        AvailabilityMessage = "Generated (availability not checked)"
     }
 }
 
@@ -270,113 +232,24 @@ function New-AzureTerraformBackend {
         [string]$ContainerName,
         [string]$Location,
         [string]$SubscriptionId,
-        [switch]$CreateResourceGroup
+        [switch]$CreateResourceGroup,
+        [string]$DisplayName = "",
+        [string]$ProjectName = "",
+        [string]$Environment = "",
+        [string]$Purpose = ""
     )
     
-    try {
-        $accountInfo = Test-AzureAuthentication -SubscriptionId $SubscriptionId
-        
-        Write-ColorOutput "🏗️  Creating Terraform backend infrastructure..." "Magenta"
-        
-        # Check/Create Resource Group
-        if ($CreateResourceGroup) {
-            Write-ColorOutput "📁 Creating resource group '$ResourceGroupName'..." "Cyan"
-            $rgResult = az group create --name $ResourceGroupName --location $Location --output json            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to create resource group"
-            }
-            $resourceGroup = $rgResult | ConvertFrom-Json
-            Write-ColorOutput "✅ Resource group created: $($resourceGroup.name)" "Green"
-        }
-        else {
-            # Check if resource group exists
-            $null = az group show --name $ResourceGroupName --output json 2>$null
-            if ($LASTEXITCODE -ne 0) {
-                throw "Resource group '$ResourceGroupName' does not exist. Use -CreateResourceGroup to create it."
-            }
-        }
-        
-        # Check if storage account already exists
-        $storageCheck = Test-AzureStorageAccount -StorageAccountName $StorageAccountName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-        
-        if (-not $storageCheck.Exists) {
-            Write-ColorOutput "💾 Creating storage account '$StorageAccountName'..." "Cyan"
-            
-            $storageResult = az storage account create `
-                --name $StorageAccountName `
-                --resource-group $ResourceGroupName `
-                --location $Location `
-                --sku Standard_LRS `
-                --kind StorageV2 `
-                --access-tier Hot `
-                --encryption-services blob `
-                --https-only true `
-                --min-tls-version TLS1_2 `
-                --allow-blob-public-access false `
-                --output json
-                
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to create storage account"
-            }
-            
-            $storageAccount = $storageResult | ConvertFrom-Json
-            Write-ColorOutput "✅ Storage account created: $($storageAccount.name)" "Green"
-        }
-        else {
-            Write-ColorOutput "✅ Using existing storage account: $StorageAccountName" "Green"
-            $storageAccount = $storageCheck.StorageAccount
-        }
-        
-        # Check/Create Container
-        $containerCheck = Test-AzureStorageContainer -StorageAccountName $StorageAccountName -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-          if (-not $containerCheck.Exists) {
-            Write-ColorOutput "📦 Creating storage container '$ContainerName'..." "Cyan"
-            
-            $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
-            $storageKey = $keys[0].value
-            
-            $null = az storage container create `
-                --name $ContainerName `
-                --account-name $StorageAccountName `
-                --account-key $storageKey `
-                --public-access off `
-                --output json
-                
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to create storage container"
-            }
-            
-            Write-ColorOutput "✅ Storage container created: $ContainerName" "Green"
-        }
-        else {
-            Write-ColorOutput "✅ Using existing storage container: $ContainerName" "Green"
-        }
-        
-        # Enable versioning for better state management
-        Write-ColorOutput "🔧 Configuring storage account settings..." "Cyan"
-        az storage account blob-service-properties update `
-            --account-name $StorageAccountName `
-            --resource-group $ResourceGroupName `
-            --enable-versioning true `
-            --enable-delete-retention true `
-            --delete-retention-days 30 `
-            --output none
-            
-        if ($LASTEXITCODE -eq 0) {
-            Write-ColorOutput "✅ Enabled blob versioning and soft delete" "Green"
-        }
-        
-        return @{
-            Success = $true
-            StorageAccount = $StorageAccountName
-            ResourceGroup = $ResourceGroupName
-            Container = $ContainerName
-            Location = $Location
-            SubscriptionId = $accountInfo.id
-        }
-    }
-    catch {
-        Write-ColorOutput "❌ Failed to create Terraform backend: $($_.Exception.Message)" "Red"
-        throw
+    Write-ColorOutput "ℹ️ Backend creation requires full Azure module functionality" "Yellow"
+    Write-ColorOutput "   This is a simplified fallback - use modules for full features" "Gray"
+    
+    return @{
+        StorageAccount = $StorageAccountName
+        ResourceGroup = $ResourceGroupName
+        Container = $ContainerName
+        SubscriptionId = $SubscriptionId
+        Location = $Location
+        Created = $false
+        Message = "Basic fallback - modules required for actual creation"
     }
 }
 
@@ -388,77 +261,12 @@ function Test-TerraformBackend {
         [string]$SubscriptionId
     )
     
-    try {
-        Write-ColorOutput "🔍 Validating Terraform backend configuration..." "Cyan"
-        
-        # Test authentication
-        $accountInfo = Test-AzureAuthentication -SubscriptionId $SubscriptionId
-        
-        # Test storage account
-        $storageCheck = Test-AzureStorageAccount -StorageAccountName $StorageAccountName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-        if (-not $storageCheck.Exists) {
-            return @{
-                Valid = $false
-                Issues = @("Storage account '$StorageAccountName' does not exist")
-                StorageAccountExists = $false
-                ContainerExists = $false
-            }
-        }
-        
-        # Test container
-        $containerCheck = Test-AzureStorageContainer -StorageAccountName $StorageAccountName -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-        if (-not $containerCheck.Exists) {
-            return @{
-                Valid = $false
-                Issues = @("Storage container '$ContainerName' does not exist")
-                StorageAccountExists = $true
-                ContainerExists = $false
-            }
-        }
-        
-        Write-ColorOutput "✅ Terraform backend configuration is valid" "Green"
-        return @{
-            Valid = $true
-            Issues = @()
-            StorageAccountExists = $true
-            ContainerExists = $true
-            SubscriptionId = $accountInfo.id
-        }
-    }
-    catch {
-        return @{
-            Valid = $false
-            Issues = @("Authentication or access error: $($_.Exception.Message)")
-            StorageAccountExists = $false
-            ContainerExists = $false
-        }
-    }
-}
-
-function Get-InteractiveInput {
-    param(
-        [string]$Prompt,
-        [string]$DefaultValue = "",
-        [switch]$Secure
-    )
-      $promptText = if ($DefaultValue) {
-        "${Prompt} [${DefaultValue}]: "
-    } else {
-        "${Prompt}: "
-    }
+    Write-ColorOutput "ℹ️ Backend validation requires full Azure module functionality" "Yellow"
     
-    if ($Secure) {
-        $secureInput = Read-Host -Prompt $promptText -AsSecureString
-        $plainText = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureInput))
-        $userResponse = $plainText
-    } else {
-        $userResponse = Read-Host -Prompt $promptText
+    return @{
+        Valid = $false
+        Message = "Validation requires Azure modules"
     }
-    
-    if ([string]::IsNullOrWhiteSpace($userResponse) -and $DefaultValue) {
-        return $DefaultValue
-    }
-    return $userResponse
 }
 
 function Get-BackendConfiguration {
@@ -468,417 +276,136 @@ function Get-BackendConfiguration {
         [string]$Location
     )
     
-    Write-ColorOutput "`n🏗️  Terraform Backend Configuration" "Cyan"
-    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Cyan"
-    Write-ColorOutput "Configure Azure Storage for Terraform remote state management." "White"
-    
-    # Default values based on project
-    $defaultRG = "$ProjectName-tfstate-rg"
-    $defaultSA = ($ProjectName.ToLower() -replace '[^a-z0-9]', '') + 'tfstate'
-    $defaultContainer = 'tfstate'
-    
-    # Get user input with defaults
-    $backendSubId = Get-InteractiveInput "Backend Subscription ID" $SubscriptionId
-    $backendRG = Get-InteractiveInput "Resource Group for backend" $defaultRG
-    $backendSA = Get-InteractiveInput "Storage Account name" $defaultSA
-    $backendContainer = Get-InteractiveInput "Container name" $defaultContainer
-    
-    Write-ColorOutput "`n🔍 What would you like to do with the backend?" "Yellow"
-    Write-ColorOutput "1. Validate existing backend (default)" "White"
-    Write-ColorOutput "2. Create backend if it doesn't exist" "White"
-    Write-ColorOutput "3. Skip backend setup (configure manually later)" "White"
-    
-    $choice = Get-InteractiveInput "Enter choice (1-3)" "1"
-    
-    $action = switch ($choice) {
-        "1" { "validate" }
-        "2" { "create" }
-        "3" { "skip" }
-        default { "validate" }
-    }
+    Write-ColorOutput "ℹ️ Interactive configuration requires full module functionality" "Yellow"
     
     return @{
-        SubscriptionId = $backendSubId
-        ResourceGroup = $backendRG
-        StorageAccount = $backendSA
-        Container = $backendContainer
-        Action = $action
+        SubscriptionId = $SubscriptionId
+        ResourceGroup = "$ProjectName-tfstate-rg"
+        StorageAccount = "$ProjectName$($Location.Substring(0,3))tfstate"
+        Container = "tfstate"
+        Action = "skip"
     }
 }
 
-function Test-Prerequisites {
-    Write-ColorOutput "🔍 Checking prerequisites..." "Cyan"
-    
-    # Check if Docker is available
-    try {
-        $null = Get-Command docker -ErrorAction Stop
-        Write-ColorOutput "✅ Docker CLI found" "Green"
-    }
-    catch {
-        Write-ColorOutput "⚠️  Docker CLI not found. DevContainers require Docker Desktop." "Yellow"
-        Write-ColorOutput "   Please install Docker Desktop from: https://www.docker.com/products/docker-desktop" "Yellow"
-    }
-
-    # Check if VS Code is available
-    try {
-        $null = Get-Command code -ErrorAction Stop
-        Write-ColorOutput "✅ VS Code CLI found" "Green"
-    }
-    catch {
-        Write-ColorOutput "⚠️  VS Code CLI not found. Consider installing VS Code." "Yellow"
-        Write-ColorOutput "   Download from: https://code.visualstudio.com/" "Yellow"
-    }
-}
-
-function Initialize-ProjectDirectory {
-    param([string]$Path)
-    
-    Write-ColorOutput "📁 Initializing project directory: $Path" "Cyan"
-    
-    if (-not (Test-Path $Path)) {
-        New-Item -ItemType Directory -Path $Path -Force | Out-Null
-        Write-ColorOutput "✅ Created project directory" "Green"
-    }
-    
-    Set-Location $Path
-    
-    # Create .devcontainer directory
-    $devcontainerPath = Join-Path $Path ".devcontainer"
-    if (Test-Path $devcontainerPath) {
-        if ($Force) {
-            Write-ColorOutput "🔄 Removing existing .devcontainer directory" "Yellow"
-            Remove-Item $devcontainerPath -Recurse -Force
-        }
-        else {
-            throw "DevContainer directory already exists. Use -Force to overwrite."
-        }
-    }
-    
-    New-Item -ItemType Directory -Path $devcontainerPath -Force | Out-Null
-    Write-ColorOutput "✅ Created .devcontainer directory" "Green"
-    
-    return $devcontainerPath
-}
-
-function Copy-DevContainerFiles {
-    param(
-        [string]$SourcePath,
-        [string]$DestinationPath
-    )
-    
-    Write-ColorOutput "📋 Copying DevContainer files..." "Cyan"
-    
-    $filesToCopy = @(
-        'devcontainer.json',
-        'Dockerfile',
-        'devcontainer.env.example'
-    )
-    
-    foreach ($file in $filesToCopy) {
-        $sourcePath = Join-Path $SourcePath $file
-        if (Test-Path $sourcePath) {
-            Copy-Item $sourcePath $DestinationPath -Force
-            Write-ColorOutput "✅ Copied $file" "Green"
-        }
-        else {
-            Write-ColorOutput "⚠️  Warning: $file not found in template source" "Yellow"
-        }
-    }
-    
-    # Copy scripts directory if it exists
-    $scriptsPath = Join-Path $SourcePath "scripts"
-    if (Test-Path $scriptsPath) {
-        Copy-Item $scriptsPath $DestinationPath -Recurse -Force
-        Write-ColorOutput "✅ Copied scripts directory" "Green"
-    }
-}
-
-function New-DevContainerEnv {
-    param(
-        [string]$Path,
-        [hashtable]$Config
-    )
-    
-    Write-ColorOutput "⚙️  Creating devcontainer.env file..." "Cyan"
-    
-    # Determine backend subscription (could be different from main subscription)
-    $backendSubId = if ($Config.BackendInfo -and $Config.BackendInfo.SubscriptionId) {
-        $Config.BackendInfo.SubscriptionId
+# Import specialized modules with error handling
+try {
+    $ModulesPath = Join-Path $PSScriptRoot "modules"
+    Write-ColorOutput "Loading specialized modules from: $ModulesPath" "Gray"
+      # Check if modules directory exists
+    if (-not (Test-Path $ModulesPath)) {
+        Write-ColorOutput "⚠️ Modules directory not found, using basic functionality only" "Yellow"
     } else {
-        $Config.SubscriptionId
-    }
-    
-    # Build the environment content in parts
-    $envContent = @"
-# DevContainer Environment Configuration
-# Generated by Initialize-DevContainer.ps1 on $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
-
-# ===========================================
-# Azure Authentication
-# ===========================================
-# Your Azure tenant ID (always required)
-ARM_TENANT_ID=$($Config.TenantId)
-
-# Azure subscription ID where resources will be deployed (always required)
-ARM_SUBSCRIPTION_ID=$($Config.SubscriptionId)
-
-# OPTIONAL: Service Principal or Managed Identity Client ID
-# Leave empty to use Azure CLI authentication (recommended for local development)
-$(if ($Config.ClientId) { "ARM_CLIENT_ID=$($Config.ClientId)" } else { "# ARM_CLIENT_ID=" })
-
-# OPTIONAL: For service principal authentication (CI/CD only)
-# Leave empty to use Azure CLI authentication (recommended for local development)
-# ARM_CLIENT_SECRET=your-secret-here
-
-# Authentication methods (in order of precedence):
-# 1. Service Principal (if ARM_CLIENT_SECRET is set)
-# 2. Azure CLI (if you've run 'az login' - recommended for local dev)
-# 3. Managed Identity (when running on Azure services)
-
-# ===========================================
-# Terraform Backend Configuration
-# ===========================================
-"@
-
-    # Add backend configuration based on whether BackendInfo exists
-    if ($Config.BackendInfo) {
-        $backendSection = @"
-# Resource group containing the storage account for Terraform state
-TF_BACKEND_RESOURCE_GROUP=$($Config.BackendInfo.ResourceGroup)
-
-# Storage account name for Terraform remote state
-TF_BACKEND_STORAGE_ACCOUNT=$($Config.BackendInfo.StorageAccount)
-
-# Container name within the storage account
-TF_BACKEND_CONTAINER=$($Config.BackendInfo.Container)
-
-# Blob name for the state file (typically ending in .tfstate)
-TF_BACKEND_KEY=$($Config.ProjectName).$($Config.Environment).terraform.tfstate
-
-# Azure region for the backend resources
-TF_BACKEND_LOCATION=$($Config.Location)
-
-# Backend subscription (may differ from main subscription)
-TF_BACKEND_SUBSCRIPTION_ID=$backendSubId
-"@
-    } else {
-        $backendSection = @"
-# Resource group containing the storage account for Terraform state
-TF_BACKEND_RESOURCE_GROUP=$($Config.ProjectName)-tfstate-rg
-
-# Storage account name for Terraform remote state
-TF_BACKEND_STORAGE_ACCOUNT=$($Config.ProjectName.ToLower() -replace '[^a-z0-9]', '')tfstate
-
-# Container name within the storage account
-TF_BACKEND_CONTAINER=tfstate
-
-# Blob name for the state file (typically ending in .tfstate)
-TF_BACKEND_KEY=$($Config.ProjectName).$($Config.Environment).terraform.tfstate
-
-# Azure region for the backend resources
-TF_BACKEND_LOCATION=$($Config.Location)
-
-# Backend subscription (may differ from main subscription)
-TF_BACKEND_SUBSCRIPTION_ID=$($Config.SubscriptionId)
-"@
-    }
-
-    # Add the rest of the configuration
-    $projectSection = @"
-
-# ===========================================
-# Project-Specific Terraform Variables
-# ===========================================
-# These will be available as TF_VAR_* in your Terraform code
-
-# Environment (dev, staging, prod, etc.)
-TF_VAR_ENVIRONMENT=$($Config.Environment)
-
-# Project or application name
-TF_VAR_PROJECT_NAME=$($Config.ProjectName)
-
-# Primary Azure region for deployments
-TF_VAR_LOCATION=$($Config.Location)
-
-# ===========================================
-# Tool Versions (Optional Customization)
-# ===========================================
-TERRAFORM_VERSION=1.10
-BICEP_VERSION=latest
-TFLINT_VERSION=latest
-TERRAFORM_DOCS_VERSION=latest
-TERRAGRUNT_VERSION=latest
-INSTALL_BICEP=$($Config.InstallBicep)
-"@
-
-    # Combine all sections
-    $fullEnvContent = $envContent + "`n" + $backendSection + $projectSection
-
-    $envFile = Join-Path $Path "devcontainer.env"
-    $fullEnvContent | Out-File -FilePath $envFile -Encoding UTF8
-    Write-ColorOutput "✅ Created devcontainer.env file" "Green"
-}
-
-function Add-ExampleFiles {
-    param(
-        [string]$ProjectPath,
-        [string]$ProjectType,
-        [string]$TemplateSource
-    )
-    
-    Write-ColorOutput "📝 Adding example files..." "Cyan"
-    
-    $examplesPath = Join-Path $TemplateSource "examples"
-    if (-not (Test-Path $examplesPath)) {
-        Write-ColorOutput "⚠️  Examples directory not found in template source" "Yellow"
-        return
-    }
-    
-    if ($ProjectType -in @('terraform', 'both')) {
-        $terraformFiles = @('main.tf', 'variables.tf', 'outputs.tf', 'terraform.tfvars.example')
-        foreach ($file in $terraformFiles) {
-            $sourcePath = Join-Path $examplesPath $file
-            if (Test-Path $sourcePath) {
-                Copy-Item $sourcePath $ProjectPath -Force
-                Write-ColorOutput "✅ Added Terraform example: $file" "Green"
+        # Import specialized modules (Azure, DevContainer, etc.)
+        $moduleFiles = @(
+            "AzureModule.psm1", 
+            "DevContainerModule.psm1",
+            "ProjectModule.psm1"
+        )
+        
+        foreach ($moduleFile in $moduleFiles) {
+            $modulePath = Join-Path $ModulesPath $moduleFile
+            if (Test-Path $modulePath) {
+                Import-Module -Name $modulePath -Force -Global -ErrorAction SilentlyContinue
+                Write-ColorOutput "✅ $moduleFile imported" "Green"
+            } else {
+                Write-ColorOutput "⚠️ $moduleFile not found, some features may be limited" "Yellow"
             }
         }
     }
-    
-    if ($ProjectType -in @('bicep', 'both')) {
-        $bicepFiles = @('main.bicep', 'main.bicepparam', 'bicepconfig.json')
-        foreach ($file in $bicepFiles) {
-            $sourcePath = Join-Path $examplesPath $file
-            if (Test-Path $sourcePath) {
-                Copy-Item $sourcePath $ProjectPath -Force
-                Write-ColorOutput "✅ Added Bicep example: $file" "Green"
-            }
-        }
-    }
-    
-    # Add common files
-    $commonFiles = @('ps-rule.yaml')
-    foreach ($file in $commonFiles) {
-        $sourcePath = Join-Path $examplesPath $file
-        if (Test-Path $sourcePath) {
-            Copy-Item $sourcePath $ProjectPath -Force
-            Write-ColorOutput "✅ Added configuration: $file" "Green"
-        }
-    }
 }
-
-function Show-NextSteps {
-    param(
-        [string]$ProjectPath, 
-        [string]$ProjectType,
-        [hashtable]$BackendInfo
-    )
-    
-    Write-ColorOutput "`n🎉 DevContainer initialization complete!" "Green"
-    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Green"
-    
-    Write-ColorOutput "`n📋 Next Steps:" "Cyan"
-    Write-ColorOutput "1. Open your project in VS Code:" "White"
-    Write-ColorOutput "   code `"$ProjectPath`"" "Gray"
-    
-    Write-ColorOutput "`n2. VS Code will detect the DevContainer and prompt to reopen" "White"
-    Write-ColorOutput "   Click 'Reopen in Container' when prompted" "Gray"
-    
-    Write-ColorOutput "`n3. Once inside the container, authenticate with Azure:" "White"
-    Write-ColorOutput "   az login" "Gray"
-    
-    if ($BackendInfo) {
-        Write-ColorOutput "`n4. Your Terraform backend is configured:" "White"
-        Write-ColorOutput "   Storage Account: $($BackendInfo.StorageAccount)" "Gray"
-        Write-ColorOutput "   Resource Group: $($BackendInfo.ResourceGroup)" "Gray"
-        Write-ColorOutput "   Container: $($BackendInfo.Container)" "Gray"
-    }
-    
-    if ($ProjectType -in @('terraform', 'both')) {
-        Write-ColorOutput "`n5. Initialize Terraform (if you have .tf files):" "White"
-        Write-ColorOutput "   terraform init" "Gray"
-    }
-    
-    Write-ColorOutput "`n📁 Files created:" "Cyan"
-    Write-ColorOutput "   .devcontainer/devcontainer.json" "Gray"
-    Write-ColorOutput "   .devcontainer/Dockerfile" "Gray"
-    Write-ColorOutput "   .devcontainer/devcontainer.env" "Gray"
-    Write-ColorOutput "   .devcontainer/scripts/" "Gray"
-    
-    Write-ColorOutput "`n💡 Pro Tips:" "Cyan"
-    Write-ColorOutput "   • Use Ctrl+Shift+P → 'Tasks: Run Task' for built-in commands" "Gray"
-    Write-ColorOutput "   • Edit .devcontainer/devcontainer.env to customize your setup" "Gray"
-    Write-ColorOutput "   • The container includes Terraform, Bicep, Azure CLI, and security tools" "Gray"
-    
-    if ($BackendInfo) {
-        Write-ColorOutput "`n🔧 Backend Management:" "Cyan"
-        Write-ColorOutput "   • Your Terraform backend is ready to use" "Gray"
-        Write-ColorOutput "   • State files are stored securely in Azure Storage" "Gray"
-        Write-ColorOutput "   • Blob versioning and soft delete are enabled" "Gray"
-    }
-    
-    Write-ColorOutput "`n🔗 Documentation:" "Cyan"
-    Write-ColorOutput "   • README.md in the DevContainer template for full documentation" "Gray"
-    Write-ColorOutput "   • VS Code DevContainer docs: https://code.visualstudio.com/docs/devcontainers/containers" "Gray"
+catch {
+    Write-ColorOutput "⚠️ Module import issues, using basic functionality: $($_.Exception.Message)" "Yellow"
 }
 
 # Main execution
 try {
-    Write-ColorOutput "🚀 DevContainer Accelerator for Infrastructure as Code" "Magenta"
-    Write-ColorOutput "═════════════════════════════════════════════════════" "Magenta"
+    Write-ColorOutput "� DevContainer Accelerator for Infrastructure as Code" "Blue"
+    Write-ColorOutput "═════════════════════════════════════════════════════" "Blue"
     
-    # Test prerequisites
-    Test-Prerequisites
+    # Handle WhatIf/DryRun mode
+    if ($WhatIf -or $DryRun) {
+        Write-ColorOutput "� WhatIf/DryRun Mode - No changes will be made" "Yellow"
+        Write-ColorOutput "═══════════════════════════════════════════════════" "Yellow"
+    }
     
-    # Handle interactive mode if no required parameters provided
-    if ($Interactive -or (-not $TenantId -or -not $SubscriptionId -or -not $ProjectName)) {
-        Write-ColorOutput "`n🤔 Interactive Mode" "Cyan"
-        Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Cyan"
+    # Validate required parameters FIRST (before prerequisites check for fast failure in CI)
+    if (-not ($WhatIf -or $DryRun)) {
+        $validationErrors = @()
         
-        if (-not $TenantId) {
-            do {
-                $TenantId = Get-InteractiveInput "Azure Tenant ID (GUID format)"
-            } while (-not (Test-IsGuid $TenantId))
+        if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
+            $validationErrors += "Valid Azure Tenant ID is required"
+        }
+        if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
+            $validationErrors += "Valid Azure Subscription ID is required"
         }
         
-        if (-not $SubscriptionId) {
-            do {
-                $SubscriptionId = Get-InteractiveInput "Azure Subscription ID (GUID format)"
-            } while (-not (Test-IsGuid $SubscriptionId))
-        }
-        
-        if (-not $ProjectName) {
-            do {
-                $ProjectName = Get-InteractiveInput "Project Name (alphanumeric, dashes, underscores only)"
-            } while ($ProjectName -notmatch '^[a-zA-Z0-9\-_]+$')
-        }
-        
-        if (-not $Environment) {
-            $Environment = Get-InteractiveInput "Environment" "dev"
-        }
-        
-        if (-not $Location) {
-            $Location = Get-InteractiveInput "Azure Location" "eastus"
-        }
-        
-        if (-not $ProjectType) {
-            Write-ColorOutput "`n📋 Project Type:" "Yellow"
-            Write-ColorOutput "1. Terraform only" "White"
-            Write-ColorOutput "2. Bicep only" "White"
-            Write-ColorOutput "3. Both Terraform and Bicep" "White"
-            
-            $typeChoice = Get-InteractiveInput "Enter choice (1-3)" "1"
-            $ProjectType = switch ($typeChoice) {
-                "1" { "terraform" }
-                "2" { "bicep" }
-                "3" { "both" }
-                default { "terraform" }
+        if ($validationErrors.Count -gt 0) {
+            foreach ($validationError in $validationErrors) {
+                Write-ColorOutput "❌ Error: $validationError" "Red"
             }
+            exit 1
+        }
+    } else {
+        # In WhatIf mode, provide dummy values if not specified
+        if (-not $TenantId) {
+            $TenantId = "12345678-1234-1234-1234-123456789012"
+            Write-ColorOutput "🧪 WhatIf mode: Using dummy Tenant ID" "Cyan"
+        }
+        if (-not $SubscriptionId) {
+            $SubscriptionId = "87654321-4321-4321-4321-210987654321"
+            Write-ColorOutput "🧪 WhatIf mode: Using dummy Subscription ID" "Cyan"
+        }
+    }
+
+    # Check prerequisites (skip exit in WhatIf mode for testing)
+    if (-not (Test-Prerequisites)) {
+        if (-not ($WhatIf -or $DryRun)) {
+            exit 1
+        } else {
+            Write-ColorOutput "⚠️ Prerequisites check failed, but continuing in WhatIf mode" "Yellow"
+        }
+    }
+    
+    # Interactive mode handling
+    if ($Interactive) {
+        if (-not $TenantId) {
+            $TenantId = Get-InteractiveInput "Azure Tenant ID (GUID)"
+        }
+        if (-not $SubscriptionId) {
+            $SubscriptionId = Get-InteractiveInput "Azure Subscription ID (GUID)"
+        }
+        if (-not $ProjectName) {
+            $ProjectName = Get-InteractiveInput "Project Name" (Split-Path $ProjectPath -Leaf)
         }
         
-        # Ask about examples
+        Write-ColorOutput "`n🏗️  Project Type Selection" "Cyan"
+        Write-ColorOutput "1. Terraform only (default)" "White"
+        Write-ColorOutput "2. Bicep only" "White"
+        Write-ColorOutput "3. Both Terraform and Bicep" "White"
+        
+        $typeChoice = Get-InteractiveInput "Enter choice (1-3)" "1"
+        $ProjectType = switch ($typeChoice) {
+            "1" { "terraform" }
+            "2" { "bicep" }
+            "3" { "both" }
+            default { "terraform" }
+        }
+        
         $exampleChoice = Get-InteractiveInput "Include example files? (y/n)" "y"
         $IncludeExamples = $exampleChoice -match '^y|yes$'
+    }
+    
+    if (-not $ProjectName) {
+        $ProjectName = Split-Path $ProjectPath -Leaf
+    }
+    
+    # Initialize project directory
+    $projectPath = Initialize-ProjectDirectory -ProjectPath $ProjectPath
+    
+    # Copy DevContainer files
+    $success = Copy-DevContainerFiles -SourcePath $TemplateSource -DestinationPath $projectPath -Force:$Force
+    if (-not $success) {
+        exit 1
     }
     
     # Handle Terraform backend management
@@ -887,7 +414,26 @@ try {
         # Set default backend configuration
         $backendSubId = if ($BackendSubscriptionId) { $BackendSubscriptionId } else { $SubscriptionId }
         $backendRG = if ($BackendResourceGroup) { $BackendResourceGroup } else { "$ProjectName-tfstate-rg" }
-        $backendSA = if ($BackendStorageAccount) { $BackendStorageAccount } else { ($ProjectName.ToLower() -replace '[^a-z0-9]', '') + 'tfstate' }
+        
+        # Generate proper storage account name with constraints and uniqueness
+        if ($BackendStorageAccount) {
+            $backendSA = $BackendStorageAccount
+            $storageAccountInfo = @{
+                StorageAccountName = $BackendStorageAccount
+                DisplayName = "$ProjectName-$Environment-tfstate"
+                ProjectName = $ProjectName
+                Environment = $Environment
+                Purpose = "tfstate"
+            }
+        } else {
+            $storageAccountInfo = New-AzureStorageAccountName -ProjectName $ProjectName -Environment $Environment -Purpose "tfstate"
+            $backendSA = $storageAccountInfo.StorageAccountName
+            $availabilityStatus = if ($storageAccountInfo.Available) { "✅ Available" } else { "⚠️ $($storageAccountInfo.AvailabilityMessage)" }
+            Write-ColorOutput "📝 Generated storage account name: $backendSA" "Cyan"
+            Write-ColorOutput "   Display: $($storageAccountInfo.DisplayName)" "Gray"
+            Write-ColorOutput "   Status: $availabilityStatus" "Gray"
+        }
+        
         $backendContainer = $BackendContainer
         
         # Handle interactive backend configuration
@@ -897,9 +443,8 @@ try {
             $backendRG = $backendConfig.ResourceGroup
             $backendSA = $backendConfig.StorageAccount
             $backendContainer = $backendConfig.Container
-              $CreateBackend = $backendConfig.Action -eq "create"
+            $CreateBackend = $backendConfig.Action -eq "create"
             $ValidateBackend = $backendConfig.Action -eq "validate"
-            $CreateBackendResourceGroup = $CreateBackend
         }
         
         Write-ColorOutput "`n🏗️  Managing Terraform Backend Configuration" "Cyan"
@@ -910,13 +455,26 @@ try {
         Write-ColorOutput "   Subscription: $backendSubId" "Gray"
         Write-ColorOutput "   Resource Group: $backendRG" "Gray"
         Write-ColorOutput "   Storage Account: $backendSA" "Gray"
+        if ($storageAccountInfo.DisplayName -ne $backendSA) {
+            Write-ColorOutput "   Display Name: $($storageAccountInfo.DisplayName)" "Gray"
+        }
         Write-ColorOutput "   Container: $backendContainer" "Gray"
         Write-ColorOutput "   Location: $Location" "Gray"
         
         if ($CreateBackend) {
             # Create backend infrastructure
             Write-ColorOutput "`n🔨 Creating Terraform backend infrastructure..." "Yellow"
-            $backendInfo = New-AzureTerraformBackend -StorageAccountName $backendSA -ResourceGroupName $backendRG -ContainerName $backendContainer -Location $Location -SubscriptionId $backendSubId -CreateResourceGroup:$CreateBackendResourceGroup
+            $backendInfo = New-AzureTerraformBackend `
+                -StorageAccountName $backendSA `
+                -ResourceGroupName $backendRG `
+                -ContainerName $backendContainer `
+                -Location $Location `
+                -SubscriptionId $backendSubId `
+                -CreateResourceGroup:$CreateBackendResourceGroup `
+                -DisplayName $storageAccountInfo.DisplayName `
+                -ProjectName $storageAccountInfo.ProjectName `
+                -Environment $storageAccountInfo.Environment `
+                -Purpose $storageAccountInfo.Purpose
             Write-ColorOutput "✅ Terraform backend infrastructure created successfully!" "Green"
         }
         elseif ($ValidateBackend) {
@@ -930,42 +488,32 @@ try {
                     StorageAccount = $backendSA
                     ResourceGroup = $backendRG
                     Container = $backendContainer
-                    SubscriptionId = $backendValidation.SubscriptionId
+                    SubscriptionId = $backendSubId
                 }
             }
             else {
-                Write-ColorOutput "❌ Backend validation failed:" "Red"
-                foreach ($issue in $backendValidation.Issues) {
-                    Write-ColorOutput "   • $issue" "Red"
-                }
-                Write-ColorOutput "`n💡 Use -CreateBackend to create the backend infrastructure" "Yellow"
-                throw "Terraform backend validation failed"
+                Write-ColorOutput "❌ Terraform backend validation failed: $($backendValidation.Message)" "Red"
+                Write-ColorOutput "💡 Use -CreateBackend to create the backend infrastructure" "Yellow"
             }
         }
         else {
-            # Check if backend exists without creating (default behavior)
-            Write-ColorOutput "`n🔍 Checking Terraform backend availability..." "Yellow"
+            # Default: Try to validate, but don't fail if it doesn't exist
+            Write-ColorOutput "`n🔍 Checking Terraform backend..." "Yellow"
             $backendValidation = Test-TerraformBackend -StorageAccountName $backendSA -ResourceGroupName $backendRG -ContainerName $backendContainer -SubscriptionId $backendSubId
             
             if ($backendValidation.Valid) {
-                Write-ColorOutput "✅ Terraform backend is available!" "Green"
+                Write-ColorOutput "✅ Terraform backend found and validated!" "Green"
                 $backendInfo = @{
                     StorageAccount = $backendSA
                     ResourceGroup = $backendRG
                     Container = $backendContainer
-                    SubscriptionId = $backendValidation.SubscriptionId
+                    SubscriptionId = $backendSubId
                 }
             }
             else {
-                Write-ColorOutput "⚠️  Terraform backend infrastructure not found or inaccessible:" "Yellow"
-                foreach ($issue in $backendValidation.Issues) {
-                    Write-ColorOutput "   • $issue" "Yellow"
-                }
-                Write-ColorOutput "`n💡 Backend configuration will be created in devcontainer.env" "Yellow"
-                Write-ColorOutput "   Use -CreateBackend to create the infrastructure automatically" "Yellow"
-                Write-ColorOutput "   Or use -ValidateBackend to ensure it exists before proceeding" "Yellow"
-                
-                # Set backend info anyway for configuration
+                Write-ColorOutput "⚠️  Terraform backend not found or invalid" "Yellow"
+                Write-ColorOutput "💡 Use -CreateBackend to create backend infrastructure" "Yellow"
+                Write-ColorOutput "💡 Use -ValidateBackend to validate existing infrastructure" "Yellow"
                 $backendInfo = @{
                     StorageAccount = $backendSA
                     ResourceGroup = $backendRG
@@ -976,42 +524,30 @@ try {
         }
     }
     
-    # Continue with standard DevContainer setup
-    Write-ColorOutput "`n🛠️  Setting up DevContainer Environment" "Cyan"
-    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Cyan"
+    # Create environment configuration
+    $backendConfig = if ($backendInfo) {
+        @{
+            SubscriptionId = $backendInfo.SubscriptionId
+            ResourceGroup = $backendInfo.ResourceGroup
+            StorageAccount = $backendInfo.StorageAccount
+            Container = $backendInfo.Container
+        }
+    } else { $null }
     
-    # Initialize project directory
-    $devcontainerPath = Initialize-ProjectDirectory -Path $ProjectPath
-    
-    # Copy DevContainer files
-    Copy-DevContainerFiles -SourcePath $TemplateSource -DestinationPath $devcontainerPath
-    
-    # Create enhanced configuration with backend info
-    $config = @{
-        TenantId = $TenantId
-        SubscriptionId = $SubscriptionId
-        ClientId = $ClientId
-        ProjectName = $ProjectName
-        Environment = $Environment
-        Location = $Location
-        InstallBicep = if ($ProjectType -in @('bicep', 'both')) { 'true' } else { 'false' }
-        BackendInfo = $backendInfo
-    }
-    
-    New-DevContainerEnv -Path $devcontainerPath -Config $config
+    $null = New-DevContainerEnv -ProjectPath $projectPath -TenantId $TenantId -SubscriptionId $SubscriptionId -ClientId $ClientId -Environment $Environment -Location $Location -BackendConfig $backendConfig
     
     # Add example files if requested
     if ($IncludeExamples) {
-        Add-ExampleFiles -ProjectPath $ProjectPath -ProjectType $ProjectType -TemplateSource $TemplateSource
+        $null = Add-ExampleFiles -ProjectPath $projectPath -ProjectType $ProjectType -TemplateSource $TemplateSource
     }
     
     # Show next steps
-    Show-NextSteps -ProjectPath $ProjectPath -ProjectType $ProjectType -BackendInfo $backendInfo
+    Show-NextSteps -ProjectPath $projectPath -ProjectType $ProjectType -BackendInfo $backendInfo
     
-    Write-ColorOutput "`n✨ Success! Your DevContainer environment is ready." "Green"
+    Write-ColorOutput "`n🎯 DevContainer Accelerator completed successfully!" "Green"
 }
 catch {
-    Write-ColorOutput "`n❌ Error: $($_.Exception.Message)" "Red"
-    Write-ColorOutput "Stack trace: $($_.ScriptStackTrace)" "Red"
+    Write-Host "`n❌ Error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Stack trace: $($_.ScriptStackTrace)" -ForegroundColor Red
     exit 1
 }

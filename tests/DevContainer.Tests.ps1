@@ -108,13 +108,28 @@ Describe "DevContainer Template - PowerShell Syntax Validation" -Tag "Syntax" {
 Describe "DevContainer Template - Module Functionality" -Tag "Module" {
     
     BeforeAll {
-        # Import the module for testing
-        $modulePath = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psm1"
-        Import-Module $modulePath -Force
+        # Import the new modular architecture modules for testing
+        $modulesPath = Join-Path $script:RootPath "modules"
+        Import-Module (Join-Path $modulesPath "CommonModule.psm1") -Force
+        Import-Module (Join-Path $modulesPath "AzureModule.psm1") -Force
+        Import-Module (Join-Path $modulesPath "InteractiveModule.psm1") -Force
+        Import-Module (Join-Path $modulesPath "DevContainerModule.psm1") -Force
+        Import-Module (Join-Path $modulesPath "ProjectModule.psm1") -Force
+        
+        # Also import the legacy module for compatibility testing
+        $legacyModulePath = Join-Path $script:RootPath "DevContainerAccelerator\DevContainerAccelerator.psm1"
+        if (Test-Path $legacyModulePath) {
+            Import-Module $legacyModulePath -Force
+        }
     }
     
     AfterAll {
-        # Clean up module
+        # Clean up modules
+        Remove-Module CommonModule -Force -ErrorAction SilentlyContinue
+        Remove-Module AzureModule -Force -ErrorAction SilentlyContinue
+        Remove-Module InteractiveModule -Force -ErrorAction SilentlyContinue
+        Remove-Module DevContainerModule -Force -ErrorAction SilentlyContinue
+        Remove-Module ProjectModule -Force -ErrorAction SilentlyContinue
         Remove-Module DevContainerAccelerator -Force -ErrorAction SilentlyContinue
     }
     
@@ -152,7 +167,7 @@ Describe "DevContainer Template - Module Functionality" -Tag "Module" {
     
     Context "Specific Function Testing" {
         
-        It "Test-IsGuid function should work correctly" -Skip:(-not (Get-Command Test-IsGuid -ErrorAction SilentlyContinue)) {
+        It "Test-IsGuid function should work correctly" {
             # Arrange
             $validGuid = "123e4567-e89b-12d3-a456-426614174000"
             $invalidGuid = "invalid-guid"
@@ -162,7 +177,7 @@ Describe "DevContainer Template - Module Functionality" -Tag "Module" {
             Test-IsGuid -InputString $invalidGuid | Should -Be $false
         }
         
-        It "Write-ColorOutput function should be available" -Skip:(-not (Get-Command Write-ColorOutput -ErrorAction SilentlyContinue)) {
+        It "Write-ColorOutput function should be available" {
             # Act
             $command = Get-Command Write-ColorOutput -ErrorAction SilentlyContinue
             
