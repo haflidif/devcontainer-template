@@ -29,6 +29,25 @@ BeforeAll {
     if (-not (Test-Path (Join-Path $script:RootPath "Initialize-DevContainer.ps1"))) {
         throw "Cannot find Initialize-DevContainer.ps1. Please run tests from the correct directory."
     }
+    
+    # Import the modules so the functions are available for testing
+    $modulesPath = Join-Path $script:RootPath "modules"
+    if (Test-Path $modulesPath) {
+        $moduleFiles = @(
+            "CommonModule.psm1", 
+            "AzureModule.psm1",
+            "DevContainerModule.psm1",
+            "ProjectModule.psm1",
+            "InteractiveModule.psm1"
+        )
+        
+        foreach ($moduleFile in $moduleFiles) {
+            $modulePath = Join-Path $modulesPath $moduleFile
+            if (Test-Path $modulePath) {
+                Import-Module -Name $modulePath -Force -Global -ErrorAction SilentlyContinue
+            }
+        }
+    }
 }
 
 Describe "DevContainer Template - PowerShell Syntax Validation" -Tag "Syntax" {
@@ -110,6 +129,14 @@ Describe "DevContainer Template - Module Functionality" -Tag "Module" {
     }
     
     Context "Specific Function Testing" {
+        
+        BeforeEach {
+            # Ensure CommonModule is loaded for function testing
+            $modulePath = Join-Path $script:RootPath "modules\CommonModule.psm1"
+            if (Test-Path $modulePath) {
+                Import-Module -Name $modulePath -Force -ErrorAction SilentlyContinue
+            }
+        }
         
         It "Test-IsGuid function should work correctly" {
             # Arrange

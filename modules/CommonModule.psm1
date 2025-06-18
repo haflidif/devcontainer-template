@@ -70,7 +70,7 @@ function Show-NextSteps {
     )
     
     Write-ColorOutput "`n🎉 DevContainer setup completed successfully!" "Green"
-    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Green"
+    Write-ColorOutput "───────────────────────────────────────────────────────────────" "Green"
     
     Write-ColorOutput "`n📁 Project Location: $ProjectPath" "Cyan"
     Write-ColorOutput "🔧 Project Type: $ProjectType" "Cyan"
@@ -103,7 +103,7 @@ function Show-NextSteps {
     }
     
     Write-ColorOutput "`n📚 Documentation: https://containers.dev/" "Blue"
-    Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Green"
+    Write-ColorOutput "───────────────────────────────────────────────────────────────" "Green"
 }
 
 Export-ModuleMember -Function Write-ColorOutput, Test-IsGuid, Test-Prerequisites, Show-NextSteps
