@@ -2,7 +2,7 @@
 
 BeforeAll {
     # Test paths
-    $ScriptPath = Join-Path $PSScriptRoot "..\..\Initialize-DevContainer-New.ps1"
+    $ScriptPath = Join-Path $PSScriptRoot "..\..\Initialize-DevContainer.ps1"
     $TestProjectPath = Join-Path $env:TEMP "DevContainerTest-$(Get-Random)"
     
     # Ensure test project directory doesn't exist
@@ -11,7 +11,7 @@ BeforeAll {
     }
 }
 
-Describe "Initialize-DevContainer-New Integration Tests" {
+Describe "Initialize-DevContainer Integration Tests" {
     Context "Module Import" {
         It "Should import all required modules without error" {
             # Test that the script can load without throwing errors
@@ -21,13 +21,25 @@ Describe "Initialize-DevContainer-New Integration Tests" {
     
     Context "Parameter Validation" {
         It "Should validate GUID format for TenantId" {
-            $result = & $ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" 2>&1
-            $result | Should -Match "Valid Azure Tenant ID is required"
+            try {
+                & $ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf -ErrorAction Stop
+                # If we reach here, the script didn't throw as expected
+                $false | Should -Be $true -Because "Expected script to throw for invalid TenantId"
+            }
+            catch {
+                $_.Exception.Message | Should -Match "Valid Azure Tenant ID is required"
+            }
         }
         
         It "Should validate GUID format for SubscriptionId" {
-            $result = & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" 2>&1
-            $result | Should -Match "Valid Azure Subscription ID is required"
+            try {
+                & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf -ErrorAction Stop
+                # If we reach here, the script didn't throw as expected
+                $false | Should -Be $true -Because "Expected script to throw for invalid SubscriptionId"
+            }
+            catch {
+                $_.Exception.Message | Should -Match "Valid Azure Subscription ID is required"
+            }
         }
         
         It "Should use directory name as ProjectName when not provided" {
@@ -66,9 +78,14 @@ Describe "Initialize-DevContainer-New Integration Tests" {
             Mock Test-Prerequisites { return $true } -ModuleName CommonModule
             Mock Test-AzureAuthentication { return @{ id = "test" } } -ModuleName AzureModule
             
-            $result = & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $TestProjectPath -TemplateSource $invalidTemplatePath 2>&1
-            
-            $result | Should -Match "DevContainer template not found"
+            try {
+                & $ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf -ErrorAction Stop
+                # If we reach here, the script didn't throw as expected
+                $false | Should -Be $true -Because "Expected script to throw for missing template source"
+            }
+            catch {
+                $_.Exception.Message | Should -Match "DevContainer template not found"
+            }
         }
     }
     

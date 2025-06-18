@@ -46,30 +46,42 @@ Describe "CommonModule Tests" {
     
     Context "Test-Prerequisites" {
         It "Should check for Docker and VS Code" {
-            # Mock the Get-Command calls
-            Mock Get-Command { 
-                if ($Name -eq "docker") { return @{ Name = "docker" } }
-                if ($Name -eq "code") { return @{ Name = "code" } }
-                throw "Command not found"
+            # Mock the Get-Command calls and Write-ColorOutput to suppress output
+            Mock Get-Command -ModuleName CommonModule { 
+                param($Name, $ErrorAction)
+                if ($Name -eq "docker") { return @{ Name = "docker"; CommandType = "Application" } }
+                if ($Name -eq "code") { return @{ Name = "code"; CommandType = "Application" } }
+                throw [System.Management.Automation.CommandNotFoundException]::new("Command not found")
             }
+            Mock Write-ColorOutput -ModuleName CommonModule { }
             
             Test-Prerequisites | Should -Be $true
         }
         
         It "Should return false when Docker is missing" {
-            Mock Get-Command { 
-                if ($Name -eq "docker") { throw "Command not found" }
-                if ($Name -eq "code") { return @{ Name = "code" } }
+            Mock Get-Command -ModuleName CommonModule { 
+                param($Name, $ErrorAction)
+                if ($Name -eq "docker") { 
+                    throw [System.Management.Automation.CommandNotFoundException]::new("Command 'docker' not found")
+                }
+                if ($Name -eq "code") { return @{ Name = "code"; CommandType = "Application" } }
+                throw [System.Management.Automation.CommandNotFoundException]::new("Command not found")
             }
+            Mock Write-ColorOutput -ModuleName CommonModule { }
             
             Test-Prerequisites | Should -Be $false
         }
         
         It "Should return false when VS Code is missing" {
-            Mock Get-Command { 
-                if ($Name -eq "docker") { return @{ Name = "docker" } }
-                if ($Name -eq "code") { throw "Command not found" }
+            Mock Get-Command -ModuleName CommonModule { 
+                param($Name, $ErrorAction)
+                if ($Name -eq "docker") { return @{ Name = "docker"; CommandType = "Application" } }
+                if ($Name -eq "code") { 
+                    throw [System.Management.Automation.CommandNotFoundException]::new("Command 'code' not found")
+                }
+                throw [System.Management.Automation.CommandNotFoundException]::new("Command not found")
             }
+            Mock Write-ColorOutput -ModuleName CommonModule { }
             
             Test-Prerequisites | Should -Be $false
         }

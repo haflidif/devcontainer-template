@@ -12,7 +12,7 @@ Describe "InteractiveModule Tests" {
     Context "Get-InteractiveInput" {
         It "Should return default value when input is empty" {
             # Mock Read-Host to return empty string
-            Mock Read-Host { return "" }
+            Mock Read-Host { return "" } -ModuleName "InteractiveModule"
             
             $result = Get-InteractiveInput -Prompt "Test Prompt" -DefaultValue "default"
             $result | Should -Be "default"
@@ -20,14 +20,14 @@ Describe "InteractiveModule Tests" {
         
         It "Should return user input when provided" {
             # Mock Read-Host to return user input
-            Mock Read-Host { return "user input" }
+            Mock Read-Host { return "user input" } -ModuleName "InteractiveModule"
             
             $result = Get-InteractiveInput -Prompt "Test Prompt" -DefaultValue "default"
             $result | Should -Be "user input"
         }
         
         It "Should handle empty default value" {
-            Mock Read-Host { return "user input" }
+            Mock Read-Host { return "user input" } -ModuleName "InteractiveModule"
             
             $result = Get-InteractiveInput -Prompt "Test Prompt"
             $result | Should -Be "user input"
@@ -46,7 +46,7 @@ Describe "InteractiveModule Tests" {
                     "Enter choice (1-3)" { return "1" }
                     default { return "default" }
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             # Mock storage account name generation
             Mock New-AzureStorageAccountName {
@@ -54,7 +54,7 @@ Describe "InteractiveModule Tests" {
                     StorageAccountName = "testsa123"
                     DisplayName = "TestProject-dev-tfstate"
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             $result = Get-BackendConfiguration -ProjectName "TestProject" -SubscriptionId "main-sub" -Location "eastus"
             
@@ -71,14 +71,14 @@ Describe "InteractiveModule Tests" {
                     "Enter choice (1-3)" { return "2" }
                     default { return "default" }
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             Mock New-AzureStorageAccountName {
                 return @{
                     StorageAccountName = "testsa123"
                     DisplayName = "TestProject-dev-tfstate"
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             $result = Get-BackendConfiguration -ProjectName "TestProject" -SubscriptionId "main-sub" -Location "eastus"
             $result.Action | Should -Be "create"
@@ -90,14 +90,14 @@ Describe "InteractiveModule Tests" {
                     "Enter choice (1-3)" { return "3" }
                     default { return "default" }
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             Mock New-AzureStorageAccountName {
                 return @{
                     StorageAccountName = "testsa123"
                     DisplayName = "TestProject-dev-tfstate"
                 }
-            }
+            } -ModuleName "InteractiveModule"
             
             $result = Get-BackendConfiguration -ProjectName "TestProject" -SubscriptionId "main-sub" -Location "eastus"
             $result.Action | Should -Be "skip"

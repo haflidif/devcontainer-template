@@ -53,8 +53,8 @@ Describe "AzureModule Tests" {
     
     Context "Test-AzureStorageAccountAvailability" {
         It "Should handle availability check gracefully when Azure CLI fails" {
-            # Mock Azure CLI failure
-            Mock Invoke-Expression { throw "Azure CLI error" }
+            # Mock Azure CLI failure by mocking the az command
+            Mock az { throw "Azure CLI error" } -ModuleName "AzureModule"
             
             $result = Test-AzureStorageAccountAvailability -StorageAccountName "testaccount"
             
@@ -65,7 +65,7 @@ Describe "AzureModule Tests" {
     
     Context "Test-AzureAuthentication" {
         It "Should throw when Azure CLI is not available" {
-            Mock Get-Command { throw "Command not found" }
+            Mock Get-Command { throw "Command not found" } -ModuleName "AzureModule"
             
             { Test-AzureAuthentication -SubscriptionId "12345678-1234-1234-1234-123456789012" } | Should -Throw
         }
