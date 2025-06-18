@@ -16,52 +16,95 @@ fi
 
 echo "✅ Environment file found"
 
-# Install Bicep tools
+# Install/Verify Bicep tools based on environment variables
 if [ "${INSTALL_BICEP}" = "true" ]; then
-    echo "🔧 Installing Bicep tools..."
+    echo "🔧 Verifying Bicep tools installation..."
     
-    # Run the Bicep tools installation script
-    if [ -f ".devcontainer/scripts/bicep-tools.sh" ]; then
-        sudo .devcontainer/scripts/bicep-tools.sh "${BICEP_VERSION}"
+    if command -v az &> /dev/null; then
+        echo "✅ Azure CLI is available: $(az version --output tsv --query '"azure-cli"')"
     else
-        echo "⚠️  Bicep tools installation script not found. Installing Bicep manually..."
-        
-        # Install Azure CLI if not present
-        if ! command -v az &> /dev/null; then
-            echo "📦 Installing Azure CLI..."
-            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        echo "❌ Azure CLI not found - this should have been installed during container build"
+    fi
+    
+    if command -v bicep &> /dev/null; then
+        echo "✅ Bicep CLI is available: $(bicep --version)"
+    else
+        echo "📦 Installing Bicep CLI..."
+        # Check if bicep-tools.sh script exists
+        if [ -f ".devcontainer/scripts/bicep-tools.sh" ]; then
+            echo "🚀 Running Bicep tools installation script..."
+            sudo bash .devcontainer/scripts/bicep-tools.sh "${BICEP_VERSION}"
+        else
+            echo "⚠️  Bicep tools script not found, installing Bicep CLI only..."
+            # Fallback: install just Bicep CLI
+            ARCH="amd64"
+            if [ "${BICEP_VERSION}" = "latest" ]; then
+                BICEP_VERSION=$(curl -s https://api.github.com/repos/Azure/bicep/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+            fi
+            curl -Lo bicep "https://github.com/Azure/bicep/releases/download/v${BICEP_VERSION}/bicep-linux-${ARCH}"
+            chmod +x ./bicep
+            sudo mv ./bicep /usr/local/bin/bicep
         fi
         
-        # Install Bicep CLI
-        if ! command -v bicep &> /dev/null; then
-            echo "📦 Installing Bicep CLI..."
-            az bicep install
+        # Verify Bicep installation
+        if command -v bicep &> /dev/null; then
+            echo "✅ Bicep CLI is available: $(bicep --version)"
+        else
+            echo "❌ Bicep CLI installation failed"
         fi
     fi
 fi
-# Install Terraform tools
+
+# Install/Verify Terraform tools based on environment variables
 if [ ! -z "${TERRAFORM_VERSION}" ]; then
-    echo "🔧 Installing Terraform tools..."
+    echo "🔧 Checking Terraform tools installation..."
     
-    # Run the Terraform tools installation script
-    if [ -f ".devcontainer/scripts/terraform-tools.sh" ]; then
-        sudo .devcontainer/scripts/terraform-tools.sh "${TERRAFORM_VERSION}" "${TFLINT_VERSION}" "${TERRAFORM_DOCS_VERSION}" "${TERRAGRUNT_VERSION}" "${CHECKOV_VERSION}"
+    # Check if Terraform is already installed
+    if command -v terraform &> /dev/null; then
+        echo "✅ Terraform is available: $(terraform version -json | jq -r '.terraform_version' 2>/dev/null || terraform version)"
     else
-        echo "⚠️  Terraform tools installation script not found. Installing Terraform manually..."
-        
-        # Install Terraform
-        if ! command -v terraform &> /dev/null; then
-            echo "📦 Installing Terraform ${TERRAFORM_VERSION}..."
-            wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-            echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-            sudo apt update && sudo apt install terraform
+        echo "📦 Installing Terraform tools..."
+        # Check if terraform-tools.sh script exists
+        if [ -f ".devcontainer/scripts/terraform-tools.sh" ]; then
+            echo "🚀 Running Terraform tools installation script..."
+            sudo bash .devcontainer/scripts/terraform-tools.sh "${TERRAFORM_VERSION}" "${TFLINT_VERSION}" "${TERRAFORM_DOCS_VERSION}" "${TERRAGRUNT_VERSION}" "${CHECKOV_VERSION}"
+        else
+            echo "⚠️  Terraform tools script not found, installing Terraform only..."
+            # Fallback: install just Terraform
+            ARCH="amd64"
+            if [ "${TERRAFORM_VERSION}" = "latest" ]; then
+                TERRAFORM_VERSION=$(curl -s https://api.github.com/repos/hashicorp/terraform/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+            fi
+            wget -O /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip"
+            cd /tmp && unzip terraform.zip
+            sudo mv terraform /usr/local/bin/
+            rm /tmp/terraform.zip
         fi
-        
-        # Install TFLint
-        if ! command -v tflint &> /dev/null && [ ! -z "${TFLINT_VERSION}" ]; then
-            echo "📦 Installing TFLint ${TFLINT_VERSION}..."
-            curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-        fi
+    fi
+    
+    # Verify tools after installation attempt
+    if command -v terraform &> /dev/null; then
+        echo "✅ Terraform is available: $(terraform version -json | jq -r '.terraform_version' 2>/dev/null || terraform version)"
+    else
+        echo "❌ Terraform installation failed"
+    fi
+    
+    if command -v tflint &> /dev/null; then
+        echo "✅ TFLint is available: $(tflint --version)"
+    else
+        echo "⚠️  TFLint not found"
+    fi
+    
+    if command -v terraform-docs &> /dev/null; then
+        echo "✅ terraform-docs is available: $(terraform-docs --version)"
+    else
+        echo "⚠️  terraform-docs not found"
+    fi
+    
+    if command -v terragrunt &> /dev/null; then
+        echo "✅ Terragrunt is available: $(terragrunt --version)"
+    else
+        echo "⚠️  Terragrunt not found"
     fi
 fi
 
@@ -74,20 +117,48 @@ if [ -z "$(git config --global user.name)" ]; then
     git config --global user.email "$git_email"
 fi
 
-# Initialize Terraform if terraform files exist
-if [ -f "main.tf" ] || [ -f "*.tf" ]; then
+# Configure Terraform backend and set up environment
+if [ -f "main.tf" ] || find . -name "*.tf" -type f | head -1 > /dev/null 2>&1; then
     echo "🏗️  Terraform files detected"
     
-    # Check if backend is configured
+    # Check if backend is configured and create backend configuration
     if [ ! -z "${TF_BACKEND_STORAGE_ACCOUNT}" ]; then
-        echo "🔧 Backend configuration detected"
-        echo "💡 You can run 'terraform init' to initialize the backend"
+        echo "🔧 Backend configuration detected, setting up Terraform backend..."
+        
+        # Create backend configuration file
+        cat > backend.tfvars << EOF
+resource_group_name  = "${TF_BACKEND_RESOURCE_GROUP}"
+storage_account_name = "${TF_BACKEND_STORAGE_ACCOUNT}"
+container_name       = "${TF_BACKEND_CONTAINER}"
+key                  = "terraform.tfstate"
+EOF
+        
+        # Add environment variable to shell profiles (multiple shells support)
+        echo "" >> ~/.bashrc
+        echo "# Terraform backend configuration" >> ~/.bashrc
+        echo 'export TF_CLI_ARGS_init="-backend-config=backend.tfvars"' >> ~/.bashrc
+        
+        # Also add to ~/.profile for broader shell support
+        echo "" >> ~/.profile
+        echo "# Terraform backend configuration" >> ~/.profile
+        echo 'export TF_CLI_ARGS_init="-backend-config=backend.tfvars"' >> ~/.profile
+        
+        # Set for current session and any processes started by this script
+        export TF_CLI_ARGS_init="-backend-config=backend.tfvars"
+        
+        echo "✅ Backend configuration file created: backend.tfvars"
+        echo "✅ TF_CLI_ARGS_init environment variable added to shell profiles"
+        echo "💡 Please restart your terminal or run 'source ~/.bashrc' to load the environment variable"
+        echo "💡 Then 'terraform init' will automatically use the backend configuration"
     fi
 fi
 
 # Create useful aliases
 echo "🔧 Setting up aliases..."
-cat >> ~/.bashrc << EOF
+
+# Check if aliases already exist to avoid duplicates
+if ! grep -q "# Terraform aliases" ~/.bashrc; then
+    cat >> ~/.bashrc << 'EOF'
 
 # Terraform aliases
 alias tf='terraform'
@@ -137,14 +208,18 @@ fi
 if command -v aws &> /dev/null; then
     alias awsl='aws sts get-caller-identity'
 fi
-
 EOF
+
+    echo "✅ Aliases added to ~/.bashrc"
+else
+    echo "✅ Aliases already configured in ~/.bashrc"
+fi
 
 echo "✨ DevContainer setup complete!"
 echo ""
 echo "🎯 Quick start commands:"
 echo "  Terraform:"
-echo "    • terraform init      - Initialize Terraform"
+echo "    • terraform init      - Initialize Terraform (with auto backend config)"
 echo "    • terraform plan      - Plan your infrastructure"
 echo "    • terraform apply     - Apply changes"
 echo "    • terraform validate  - Validate configuration"
@@ -163,7 +238,10 @@ echo "    • az deployment group validate     - Validate deployment"
 echo "    • az deployment group create       - Deploy resources"
 echo ""
 echo "📚 Your environment variables are loaded from .devcontainer/devcontainer.env"
-echo "🔧 Useful aliases:"
+echo "🔧 Useful aliases (restart terminal or run 'source ~/.bashrc' to load):"
 echo "  Terraform: tf, tfi, tfp, tfa, tfd, tfv, tff, tfdocs, tfscan, tfcost"
 echo "  Bicep: bc, bcb, bcd, bcl, bcf, bcv"
 echo "  Azure: azl, azs, azset, azdg, azds"
+echo ""
+echo "💡 To load environment variables and aliases in current session:"
+echo "  source ~/.bashrc"

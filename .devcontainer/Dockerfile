@@ -1,5 +1,5 @@
 # Generic Terraform DevContainer Dockerfile
-FROM mcr.microsoft.com/devcontainers/base:bullseye
+FROM mcr.microsoft.com/devcontainers/base:bookworm
 
 # Copy installation scripts
 COPY scripts/*.sh /tmp/scripts/
@@ -13,22 +13,25 @@ ARG USER_GID=$USER_UID
 
 # Install common packages and setup user
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && bash /tmp/scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    && bash /tmp/scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "false" \
     && apt-get install -y \
         curl \
         wget \
         git \
         unzip \
         jq \
-        python3 \
-        python3-pip \
-        python3-venv \
         build-essential \
+        ca-certificates \
+        gnupg \
+        lsb-release \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages for Terraform development
-RUN pip3 install --no-cache-dir --upgrade pip \
-    && pip3 install --no-cache-dir \
+# Install pip and Python packages for Terraform development
+RUN apt-get update \
+    && apt-get install -y python3-pip \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --no-cache-dir --break-system-packages --upgrade pip \
+    && python3 -m pip install --no-cache-dir --break-system-packages \
         pytest \
         black \
         flake8 \
@@ -63,7 +66,7 @@ RUN if [ "${INSTALL_AWS_CLI}" = "true" ]; then \
 # Install Google Cloud SDK
 RUN if [ "${INSTALL_GCLOUD_CLI}" = "true" ]; then \
     echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg \
     && apt-get update && apt-get install -y google-cloud-sdk \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*; \
     fi
@@ -74,21 +77,13 @@ RUN if [ "${INSTALL_DOCKER}" = "true" ]; then \
     bash /tmp/scripts/docker-debian.sh "true" "/var/run/docker-host.sock" "/var/run/docker.sock" "${USERNAME}"; \
     fi
 
-# Install Terraform tools during build
-COPY scripts/terraform-tools.sh /tmp/scripts/
-RUN chmod +x /tmp/scripts/terraform-tools.sh
-
-# Install Bicep tools during build
-COPY scripts/bicep-tools.sh /tmp/scripts/
-RUN chmod +x /tmp/scripts/bicep-tools.sh
-
-# Environment variables for tool versions (will be set at runtime)
-ENV TERRAFORM_VERSION="" \
-    TFLINT_VERSION="" \
-    TERRAFORM_DOCS_VERSION="" \
-    TERRAGRUNT_VERSION="" \
-    CHECKOV_VERSION="" \
-    BICEP_VERSION="" \
+# Environment variables for tool versions (tools will be installed via postStart)
+ENV TERRAFORM_VERSION="latest" \
+    TFLINT_VERSION="latest" \
+    TERRAFORM_DOCS_VERSION="latest" \
+    TERRAGRUNT_VERSION="latest" \
+    CHECKOV_VERSION="latest" \
+    BICEP_VERSION="latest" \
     INSTALL_BICEP="true"
 
 # Clean up

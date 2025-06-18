@@ -91,19 +91,14 @@
 				"esbenp.prettier-vscode"
 			]
 		}
-	},
-	"otherPortsAttributes": {
+	},	"otherPortsAttributes": {
 		"onAutoForward": "silent"
 	},
 	"postStartCommand": ".devcontainer/scripts/postStart.sh",
-	"initializeCommand": [
-		".devcontainer/scripts/initialize"
-	],
 	"remoteUser": "vscode",
 	"features": {
-		"ghcr.io/devcontainers/features/python:1": {},
 		"ghcr.io/devcontainers/features/node:1": {
-			"version": "16"
+			"version": "18"
 		}
 	}
 }

@@ -70,7 +70,8 @@ install_common_packages() {
     
     # Add non-free packages if requested
     if [ "${ADD_NON_FREE_PACKAGES}" = "true" ]; then
-        PACKAGE_LIST="${PACKAGE_LIST} libssl1.1"
+        # Use libssl3 for Debian bookworm instead of libssl1.1
+        PACKAGE_LIST="${PACKAGE_LIST} libssl3"
     fi
     
     check_packages ${PACKAGE_LIST}

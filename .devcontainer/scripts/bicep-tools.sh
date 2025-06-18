@@ -72,17 +72,16 @@ install_bicep() {
 install_arm_tools() {
     echo "📦 Installing ARM/Bicep language tools..."
     
-    # Install Node.js if not present
+    # Check if Node.js is available
     if ! command -v node &> /dev/null; then
-        echo "Installing Node.js..."
-        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-        apt-get install -y nodejs
+        echo "⚠️  Node.js not found. Please ensure Node.js is installed."
+        return 1
     fi
     
-    # Install ARM/Bicep language server
-    npm install -g @azure/arm-template-language-server
-    
-    echo "✅ ARM/Bicep language tools installed"
+    # Note: ARM template language server is now included in VS Code extensions
+    # The Azure Resource Manager Tools extension provides this functionality
+    echo "ℹ️  ARM/Bicep language support is provided by VS Code extensions"
+    echo "✅ ARM/Bicep language tools setup complete"
 }
 
 # Create Bicep configuration directory

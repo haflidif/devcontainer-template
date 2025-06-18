@@ -90,10 +90,15 @@ function New-DevContainerEnv {
 # Azure Configuration
 AZURE_TENANT_ID=$TenantId
 AZURE_SUBSCRIPTION_ID=$SubscriptionId
+
+# Terraform ARM Authentication (required for terraform init/plan/apply)
+ARM_TENANT_ID=$TenantId
+ARM_SUBSCRIPTION_ID=$SubscriptionId
 "@
     
     if ($ClientId) {
         $envContent += "`nAZURE_CLIENT_ID=$ClientId"
+        $envContent += "`nARM_CLIENT_ID=$ClientId"
     }
     
     $envContent += @"
@@ -106,13 +111,26 @@ AZURE_LOCATION=$Location
     if ($BackendConfig) {
         $envContent += @"
 
-# Terraform Backend Configuration
+# Terraform Backend Configuration (for backend.tfvars file generation)
 TF_BACKEND_SUBSCRIPTION_ID=$($BackendConfig.SubscriptionId)
 TF_BACKEND_RESOURCE_GROUP=$($BackendConfig.ResourceGroup)
 TF_BACKEND_STORAGE_ACCOUNT=$($BackendConfig.StorageAccount)
 TF_BACKEND_CONTAINER=$($BackendConfig.Container)
 "@
     }
+
+    # Add tool version variables
+    $envContent += @"
+
+# Tool Versions
+TERRAFORM_VERSION=latest
+TFLINT_VERSION=latest
+TERRAFORM_DOCS_VERSION=latest
+TERRAGRUNT_VERSION=latest
+CHECKOV_VERSION=latest
+BICEP_VERSION=latest
+INSTALL_BICEP=true
+"@
     
     try {
         Set-Content -Path $envPath -Value $envContent -Encoding UTF8

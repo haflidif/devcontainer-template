@@ -1,124 +1,65 @@
-# DevContainer Template
+# Getting Started Examples
 
-> **A modern, comprehensive development container template for Infrastructure as Code projects**
+This directory contains essential guides and documentation to help new users get started with the DevContainer Template.
 
-[![Documentation](https://img.shields.io/badge/docs-Hugo%20Site-blue?style=flat-square)](https://haflidif.github.io/devcontainer-template/)
-[![Tests](https://img.shields.io/badge/tests-38%20passing-success?style=flat-square)](#testing)
-[![License](https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square)](LICENSE)
-[![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-blue?style=flat-square)](#)
-[![Refactored](https://img.shields.io/badge/status-Modular%20✅-brightgreen?style=flat-square)](#modular-architecture)
+## 📋 Contents
 
-## ✨ Features
+### AVM-DEVELOPMENT-GUIDE.md
+Comprehensive guide for Azure Verified Modules (AVM) development covering:
+- Development environment setup
+- Best practices and guidelines
+- Module structure and standards
+- Testing and validation procedures
 
-- **🐳 Multi-Language Support**: Terraform, Bicep, PowerShell, and more
-- **🧪 Modern Testing**: Pester-based validation with 38 comprehensive tests
-- **📚 Beautiful Documentation**: Hugo-powered site with automatic deployment
-- **🔧 Rich Tooling**: Pre-configured with essential IaC development tools
-- **⚡ Quick Setup**: One-command initialization and configuration
-- **🔒 Security-First**: Built-in security scanning and validation
-- **🚀 CI/CD Ready**: GitHub Actions workflows for automation
-- **🏗️ Modular Architecture**: Clean, maintainable, and extensible codebase
+## 🚀 Quick Start Guide
 
-## 🚀 Quick Start
-
-```powershell
-# Clone and setup
-git clone https://github.com/haflidif/devcontainer-template.git
+### 1. Initial Setup
+```bash
+# Clone the repository
+git clone <your-repo-url>
 cd devcontainer-template
 
-# Initialize with your details (MODULAR VERSION)
-.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
-                              -SubscriptionId "your-subscription-id" `
-                              -ProjectName "my-project"
-
-# Test safely first (recommended)
-.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
-                              -SubscriptionId "your-subscription-id" `
-                              -ProjectName "my-project" `
-                              -WhatIf
-
-# Validate everything works
-.\tests\Validate-DevContainer.ps1
-
-# Open in VS Code (choose "Reopen in Container")
-code .
+# Initialize the DevContainer
+./Initialize-DevContainer.ps1
 ```
 
-## 🏗️ Modular Architecture
+### 2. Choose Your Technology Stack
+- **Terraform**: See [../terraform/](../terraform/) for examples
+- **Bicep**: See [../bicep/](../bicep/) for templates
+- **ARM Templates**: See [../arm/](../arm/) for JSON templates
 
-**✅ Refactored for Reliability & Maintainability**
+### 3. Configure Your Environment
+1. Copy `.devcontainer/devcontainer.env.example` to `.devcontainer/devcontainer.env`
+2. Update the environment variables for your Azure subscription
+3. Start the DevContainer in VS Code
 
-The DevContainer Template uses a modular architecture:
+### 4. Explore PowerShell Automation
+- Review [../powershell/](../powershell/) examples
+- Learn backend management with the DevContainer Template modules
 
-- **`Initialize-DevContainer.ps1`** - Production-ready script with hybrid architecture
-- **`modules/`** - Specialized PowerShell modules for specific functionality
-- **Fallback Systems** - Works reliably even when modules fail to load
-- **Enhanced Error Handling** - Comprehensive error management throughout
-- **WhatIf Support** - Safe testing mode to preview changes
+## 🔧 Prerequisites
 
-[📖 Read the complete refactoring documentation](docs/MODULAR_REFACTORING.md)
+- **VS Code** with Dev Containers extension
+- **Docker Desktop** running
+- **Azure Subscription** (for cloud deployments)
+- **PowerShell 5.1+** (for automation scripts)
 
-## 📖 Documentation
+## 📚 Learning Path
 
-**📚 [Complete Documentation Site](https://haflidif.github.io/devcontainer-template/)**
+1. **Start Here**: Read `AVM-DEVELOPMENT-GUIDE.md`
+2. **Configuration**: Review [../configuration/](../configuration/) settings
+3. **Automation**: Explore [../powershell/](../powershell/) scripts
+4. **Implementation**: Choose from [../terraform/](../terraform/), [../bicep/](../bicep/), or [../arm/](../arm/)
 
-Our comprehensive documentation covers:
+## 🆘 Need Help?
 
-- **[Getting Started Guide](https://haflidif.github.io/devcontainer-template/docs/getting-started/)** - Step-by-step setup and configuration
-- **[Examples](https://haflidif.github.io/devcontainer-template/docs/examples/)** - Real-world usage patterns and templates
-- **[PowerShell Module](https://haflidif.github.io/devcontainer-template/docs/api/)** - Modular PowerShell architecture function reference
-- **[Testing Framework](https://haflidif.github.io/devcontainer-template/docs/testing/)** - Comprehensive validation and testing guide
-- **[Configuration](https://haflidif.github.io/devcontainer-template/docs/configuration/)** - Advanced setup and customization
-- **[Troubleshooting](https://haflidif.github.io/devcontainer-template/docs/troubleshooting/)** - Common issues and solutions
+- Check [../docs/](../docs/) for detailed documentation
+- Run [../tests/Validate-DevContainer.ps1](../tests/Validate-DevContainer.ps1) to verify your setup
+- Review the main [README.md](../../README.md) for troubleshooting
 
-## 🛠️ What's Included
+## 🔗 Next Steps
 
-### Core Tools
-- **Terraform** + TFLint + terraform-docs + Terragrunt
-- **Azure Bicep** + Azure CLI + PowerShell
-- **Security**: Checkov, TFSec, PSRule
-- **Development**: Python, Docker, pre-commit, Git
-
-### PowerShell Automation
-- **DevContainer Template Modules** with 12+ automation functions
-- **Backend Management** with cross-subscription support
-- **Interactive Setup** with guided configuration
-- **Advanced Validation** with comprehensive testing
-
-## 🧪 Testing
-
-Run comprehensive validation with our modern Pester-based testing framework:
-
-```powershell
-# Quick syntax validation
-.\tests\Validate-DevContainer.ps1 -SyntaxOnly
-
-# Full validation suite (38 tests)
-.\tests\Validate-DevContainer.ps1 -Full
-
-# Watch mode for development
-.\tests\Validate-DevContainer.ps1 -Watch
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [documentation site](https://haflidif.github.io/devcontainer-template/) for:
-
-- **[Contributing Guide](https://haflidif.github.io/devcontainer-template/docs/contributing/)** - How to contribute to the project
-- **[Development Setup](https://haflidif.github.io/devcontainer-template/docs/development/)** - Setting up your development environment
-- **[Module Reference](https://haflidif.github.io/devcontainer-template/docs/api/)** - Modular PowerShell architecture function reference
-
-## 📄 License
-
-This project is licensed under the [GPL-3.0 License](LICENSE).
-
-## 🔗 Links
-
-- **[📚 Documentation](https://haflidif.github.io/devcontainer-template/)** - Complete documentation site
-- **[🚀 Examples](https://haflidif.github.io/devcontainer-template/docs/examples/)** - Usage examples and templates
-- **[🐛 Issues](https://github.com/haflidif/devcontainer-template/issues)** - Report bugs or request features
-- **[💬 Discussions](https://github.com/haflidif/devcontainer-template/discussions)** - Community discussions
-
----
-
-**⭐ If this project helps you, please consider giving it a star on GitHub!**
+Once you've completed the setup:
+- Explore technology-specific examples
+- Set up CI/CD pipelines with configuration templates
+- Customize the DevContainer for your project needs
