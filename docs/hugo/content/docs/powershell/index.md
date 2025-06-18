@@ -1,63 +1,154 @@
 ---
-title: "PowerShell Module"
+title: "Module Architecture"
 linkTitle: "PowerShell"
 weight: 5
 description: >
-  Learn about the DevContainer Accelerator PowerShell module for advanced automation and project management.
+  Learn about the DevContainer Template's modular PowerShell architecture for advanced automation and project management.
 ---
 
-# DevContainer Accelerator PowerShell Module
+# DevContainer Template Module Architecture
 
-The DevContainer Accelerator is a comprehensive PowerShell module that provides advanced automation capabilities for Infrastructure as Code projects.
+The DevContainer Template uses a **modular PowerShell architecture** with five specialized modules that work together to provide comprehensive Infrastructure as Code automation.
 
-## Overview
+## Architecture Overview
 
-The module includes **12+ automation functions** designed to streamline:
+The modular design provides:
 
-- **Project Creation** - Automated project setup and initialization
-- **Backend Management** - Cross-subscription Terraform state management
-- **Configuration** - Environment and tool configuration
-- **Validation** - Comprehensive project validation and testing
-- **Documentation** - Automated documentation generation
+- **Separation of Concerns** - Each module has a specific responsibility
+- **Maintainability** - Easier to test, debug, and extend
+- **Reusability** - Modules can be used independently or together
+- **Reliability** - Better error handling and graceful fallbacks
 
-## Installation
+## Module Structure
 
-### Quick Installation
-
-```powershell
-# Install from the repository
-.\Install-DevContainerAccelerator.ps1
-
-# Verify installation
-Get-Module DevContainerAccelerator -ListAvailable
-```
-
-### Manual Installation
+### 🧩 CommonModule.psm1
+**Core utilities and shared functionality**
 
 ```powershell
-# Import the module directly
-Import-Module .\DevContainerAccelerator\DevContainerAccelerator.psm1 -Force
+Import-Module .\modules\CommonModule.psm1
 
-# Check available functions
-Get-Command -Module DevContainerAccelerator
+# Available functions:
+Write-ColorOutput    # Colored console output
+Test-IsGuid         # GUID validation
+Test-Prerequisites  # System requirements check
+Show-NextSteps      # Post-setup guidance
 ```
 
-### Persistent Installation
+**Use cases:**
+- Input validation and formatting
+- System prerequisite checking
+- User feedback and guidance
+- Shared utility functions
+
+### ☁️ AzureModule.psm1
+**Azure authentication and resource management**
 
 ```powershell
-# Install to PowerShell modules directory
-$modulePath = "$env:PSModulePath".Split(';')[0]
-Copy-Item -Path ".\DevContainerAccelerator" -Destination $modulePath -Recurse -Force
+Import-Module .\modules\AzureModule.psm1
 
-# Import in profile for automatic loading
-Add-Content $PROFILE "Import-Module DevContainerAccelerator"
+# Available functions:
+Test-AzureAuthentication              # Verify Azure access
+Test-AzureStorageAccount             # Check storage account existence
+Test-AzureStorageContainer           # Verify container existence
+Test-AzureStorageAccountAvailability # Check name availability
+New-AzureStorageAccountName          # Generate unique names
+New-AzureTerraformBackend           # Create backend infrastructure
+Test-TerraformBackend               # Validate backend connectivity
 ```
 
-## Core Functions
+**Use cases:**
+- Azure authentication and authorization
+- Terraform backend creation and management
+- Storage account and container operations
+- Cross-subscription resource management
 
-### Project Management
+### 💬 InteractiveModule.psm1
+**User input and configuration prompts**
 
-#### New-IaCProject
+```powershell
+Import-Module .\modules\InteractiveModule.psm1
+
+# Available functions:
+Get-InteractiveInput      # Prompt for user configuration
+Get-BackendConfiguration  # Collect backend settings
+```
+
+**Use cases:**
+- Interactive project setup
+- User configuration collection
+- Input validation and sanitization
+- Dynamic configuration prompts
+
+### 🐳 DevContainerModule.psm1
+**DevContainer setup and configuration**
+
+```powershell
+Import-Module .\modules\DevContainerModule.psm1
+
+# Available functions:
+Initialize-ProjectDirectory  # Create project structure
+Copy-DevContainerFiles      # Copy configuration files
+New-DevContainerEnv        # Generate environment files
+```
+
+**Use cases:**
+- Project directory initialization
+- DevContainer configuration setup
+- Environment file generation
+- Container customization
+
+### 📁 ProjectModule.psm1
+**Project structure and examples management**
+
+```powershell
+Import-Module .\modules\ProjectModule.psm1
+
+# Available functions:
+Add-ExampleFiles  # Add IaC example files
+```
+
+**Use cases:**
+- Adding Terraform examples
+- Adding Bicep examples
+- Project template management
+- Code scaffolding
+
+## Usage Patterns
+
+### Main Script Integration
+The `Initialize-DevContainer.ps1` script automatically loads all modules:
+
+```powershell
+# Automatic module loading and execution
+.\Initialize-DevContainer.ps1 -TenantId "tenant-id" `
+                              -SubscriptionId "subscription-id" `
+                              -ProjectName "my-project"
+```
+
+### Individual Module Usage
+Use specific modules for targeted automation:
+
+```powershell
+# Load only what you need
+Import-Module .\modules\CommonModule.psm1
+Import-Module .\modules\AzureModule.psm1
+
+# Test prerequisites first
+if (-not (Test-Prerequisites)) {
+    Write-Error "Prerequisites not met"
+    exit 1
+}
+
+# Test Azure authentication
+if (Test-AzureAuthentication -TenantId $tenantId -SubscriptionId $subscriptionId) {
+    Write-ColorOutput "✅ Azure authentication successful" "Green"
+} else {
+    Write-ColorOutput "❌ Azure authentication failed" "Red"
+    exit 1
+}
+```
+
+For detailed function reference, see the [Module Reference](/docs/api/) section.
 
 Creates a complete Infrastructure as Code project with full configuration:
 
