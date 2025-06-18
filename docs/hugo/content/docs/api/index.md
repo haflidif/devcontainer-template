@@ -3,31 +3,96 @@ title: "Module Reference"
 linkTitle: "Module Reference"
 weight: 7
 description: >
-  Complete function reference for the DevContainerAccelerator PowerShell module.
+  Complete function reference for the DevContainer Template modular PowerShell architecture.
 ---
 
-# DevContainerAccelerator Module Reference
+# DevContainer Template Module Reference
 
-This section provides detailed function documentation for the DevContainerAccelerator PowerShell module.
+This section provides detailed function documentation for the DevContainer Template's modular PowerShell architecture.
 
-## Project Management Functions
+## Module Overview
 
-### New-IaCProject
+The DevContainer Template uses a modular architecture with five specialized modules:
 
-Creates a complete Infrastructure as Code project with full configuration.
+- **CommonModule** - Shared utilities and prerequisites
+- **AzureModule** - Azure authentication and backend management
+- **InteractiveModule** - User input and configuration prompts
+- **DevContainerModule** - DevContainer setup and configuration
+- **ProjectModule** - Project structure and example management
+
+## CommonModule Functions
+
+### Write-ColorOutput
+
+Writes colored output to the console for better user experience.
 
 #### Syntax
 
 ```powershell
-New-IaCProject
+Write-ColorOutput
+    [-Message] <String>
+    [-Color] <String>
+```
+
+### Test-IsGuid
+
+Validates if a string is a valid GUID format.
+
+#### Syntax
+
+```powershell
+Test-IsGuid
+    [-InputString] <String>
+```
+
+### Test-Prerequisites
+
+Tests system prerequisites for DevContainer operation.
+
+#### Syntax
+
+```powershell
+Test-Prerequisites
+```
+
+### Show-NextSteps
+
+Displays next steps after successful initialization.
+
+#### Syntax
+
+```powershell
+Show-NextSteps
     [-ProjectName] <String>
+```
+
+## AzureModule Functions
+
+### Test-AzureAuthentication
+
+Tests Azure authentication and subscription access.
+
+#### Syntax
+
+```powershell
+Test-AzureAuthentication
     [-TenantId] <String>
     [-SubscriptionId] <String>
-    [[-ProjectType] <String>]
-    [[-Environment] <String>]
-    [[-Location] <String>]
-    [-CreateBackend]
-    [-IncludeExamples]
+```
+
+### New-AzureTerraformBackend
+
+Creates Azure storage backend for Terraform state management.
+
+#### Syntax
+
+```powershell
+New-AzureTerraformBackend
+    [-SubscriptionId] <String>
+    [-ResourceGroupName] <String>
+    [-StorageAccountName] <String>
+    [-ContainerName] <String>
+    [-Location] <String>
     [-InitializeGit]
     [-EnableSecurity]
     [<CommonParameters>]
@@ -48,472 +113,194 @@ New-IaCProject
 | InitializeGit | Switch | No | Initialize Git repository |
 | EnableSecurity | Switch | No | Enable security scanning tools |
 
-#### Returns
-
-Returns a project configuration object with the following properties:
-
-```powershell
-@{
-    ProjectName = "my-project"
-    ProjectType = "terraform"
-    Environment = "dev"
-    Location = "eastus"
-    BackendCreated = $true
-    ExamplesIncluded = $true
-    GitInitialized = $true
-    SecurityEnabled = $true
-    CreatedDate = (Get-Date)
-    Status = "Success"
-}
 ```
 
-#### Examples
+### Test-AzureStorageAccount
 
-```powershell
-# Basic project creation
-$project = New-IaCProject -ProjectName "my-app" `
-                         -TenantId "tenant-id" `
-                         -SubscriptionId "subscription-id"
-
-# Advanced project with all features
-$project = New-IaCProject -ProjectName "enterprise-app" `
-                         -TenantId "tenant-id" `
-                         -SubscriptionId "subscription-id" `
-                         -ProjectType "both" `
-                         -Environment "prod" `
-                         -Location "westus2" `
-                         -CreateBackend `
-                         -IncludeExamples `
-                         -InitializeGit `
-                         -EnableSecurity
-```
-
-### Initialize-DevContainer
-
-Initializes DevContainer configuration in existing projects.
+Tests if an Azure storage account exists.
 
 #### Syntax
 
 ```powershell
-Initialize-DevContainer
-    [-TenantId] <String>
-    [-SubscriptionId] <String>
-    [[-ProjectName] <String>]
-    [[-Environment] <String>]
-    [[-ProjectType] <String>]
-    [-ConfigureTerraform]
-    [-ConfigureBicep]
-    [-Force]
-    [<CommonParameters>]
-```
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| TenantId | String | Yes | Azure tenant ID |
-| SubscriptionId | String | Yes | Azure subscription ID |
-| ProjectName | String | No | Name of existing project |
-| Environment | String | No | Environment name (default: "dev") |
-| ProjectType | String | No | "terraform", "bicep", or "both" |
-| ConfigureTerraform | Switch | No | Configure Terraform-specific settings |
-| ConfigureBicep | Switch | No | Configure Bicep-specific settings |
-| Force | Switch | No | Overwrite existing configuration |
-
-#### Examples
-
-```powershell
-# Basic initialization
-Initialize-DevContainer -TenantId "tenant-id" -SubscriptionId "subscription-id"
-
-# Custom configuration
-Initialize-DevContainer -TenantId "tenant-id" `
-                       -SubscriptionId "subscription-id" `
-                       -ProjectName "existing-project" `
-                       -Environment "staging" `
-                       -ConfigureTerraform `
-                       -ConfigureBicep
-```
-
-## Backend Management Functions
-
-### New-TerraformBackend
-
-Creates and configures Terraform state backends.
-
-#### Syntax
-
-```powershell
-New-TerraformBackend
-    [-SubscriptionId] <String>
-    [-TenantId] <String>
-    [-ProjectName] <String>
-    [-Environment] <String>
-    [[-Location] <String>]
-    [[-BackendSubscriptionId] <String>]
-    [-Force]
-    [<CommonParameters>]
-```
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| SubscriptionId | String | Yes | Azure subscription ID for the project |
-| TenantId | String | Yes | Azure tenant ID |
-| ProjectName | String | Yes | Name of the project |
-| Environment | String | Yes | Environment name |
-| Location | String | No | Azure region (default: "eastus") |
-| BackendSubscriptionId | String | No | Separate subscription for backend storage |
-| Force | Switch | No | Overwrite existing backend |
-
-#### Returns
-
-Returns a backend configuration object:
-
-```powershell
-@{
-    ResourceGroupName = "rg-terraform-state"
-    StorageAccountName = "sttfstate001"
-    ContainerName = "tfstate"
-    AccessKey = "storage-access-key"
-    SubscriptionId = "subscription-id"
-    Location = "eastus"
-    Created = $true
-}
-```
-
-#### Examples
-
-```powershell
-# Basic backend creation
-$backend = New-TerraformBackend -SubscriptionId "sub-id" `
-                               -TenantId "tenant-id" `
-                               -ProjectName "my-app" `
-                               -Environment "dev"
-
-# Cross-subscription backend
-$backend = New-TerraformBackend -SubscriptionId "project-sub-id" `
-                               -BackendSubscriptionId "backend-sub-id" `
-                               -TenantId "tenant-id" `
-                               -ProjectName "shared-app" `
-                               -Environment "prod"
+Test-AzureStorageAccount
+    [-StorageAccountName] <String>
+    [-ResourceGroupName] <String>
 ```
 
 ### Test-TerraformBackend
 
-Validates backend configuration and connectivity.
+Tests Terraform backend connectivity and configuration.
 
 #### Syntax
 
 ```powershell
 Test-TerraformBackend
-    [-SubscriptionId] <String>
-    [-ResourceGroupName] <String>
     [-StorageAccountName] <String>
-    [[-ContainerName] <String>]
-    [-Detailed]
-    [<CommonParameters>]
+    [-ContainerName] <String>
+    [-ResourceGroupName] <String>
 ```
 
-#### Parameters
+## InteractiveModule Functions
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| SubscriptionId | String | Yes | Azure subscription ID |
-| ResourceGroupName | String | Yes | Resource group name |
-| StorageAccountName | String | Yes | Storage account name |
-| ContainerName | String | No | Container name (default: "tfstate") |
-| Detailed | Switch | No | Return detailed test results |
+### Get-InteractiveInput
 
-#### Returns
-
-Returns a test result object:
-
-```powershell
-@{
-    Success = $true
-    ResourceGroupExists = $true
-    StorageAccountExists = $true
-    ContainerExists = $true
-    AccessKeyValid = $true
-    Issues = @()
-    TestDuration = "00:00:03.1234567"
-}
-```
-
-### Get-TerraformBackendConfig
-
-Retrieves backend configuration for Terraform.
+Prompts user for configuration input with validation.
 
 #### Syntax
 
 ```powershell
-Get-TerraformBackendConfig
-    [-SubscriptionId] <String>
-    [-ProjectName] <String>
-    [-Environment] <String>
-    [[-OutputFormat] <String>]
-    [<CommonParameters>]
+Get-InteractiveInput
 ```
 
-#### Parameters
+### Get-BackendConfiguration
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| SubscriptionId | String | Yes | Azure subscription ID |
-| ProjectName | String | Yes | Project name |
-| Environment | String | Yes | Environment name |
-| OutputFormat | String | No | "object", "terraform", or "json" (default: "object") |
-
-#### Examples
-
-```powershell
-# Get configuration object
-$config = Get-TerraformBackendConfig -SubscriptionId "sub-id" `
-                                    -ProjectName "my-app" `
-                                    -Environment "dev"
-
-# Get Terraform configuration
-$terraformConfig = Get-TerraformBackendConfig -SubscriptionId "sub-id" `
-                                             -ProjectName "my-app" `
-                                             -Environment "dev" `
-                                             -OutputFormat "terraform"
-```
-
-## Configuration Functions
-
-### Set-DevContainerConfiguration
-
-Configures DevContainer settings and environment.
+Prompts user for backend configuration settings.
 
 #### Syntax
 
 ```powershell
-Set-DevContainerConfiguration
-    [[-ProjectType] <String>]
-    [[-TerraformVersion] <String>]
-    [[-BicepVersion] <String>]
-    [-EnableTflint]
-    [-EnableCheckov]
-    [-EnableTfsec]
-    [-EnablePSRule]
-    [-EnableSecurity]
-    [[-SecurityLevel] <String>]
-    [<CommonParameters>]
-```
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| ProjectType | String | No | "terraform", "bicep", or "both" |
-| TerraformVersion | String | No | Terraform version to use |
-| BicepVersion | String | No | Bicep version to use |
-| EnableTflint | Switch | No | Enable TFLint linting |
-| EnableCheckov | Switch | No | Enable Checkov security scanning |
-| EnableTfsec | Switch | No | Enable TFSec security scanning |
-| EnablePSRule | Switch | No | Enable PSRule validation |
-| EnableSecurity | Switch | No | Enable all security tools |
-| SecurityLevel | String | No | "relaxed", "standard", or "strict" |
-
-### Get-DevContainerConfiguration
-
-Retrieves current configuration settings.
-
-#### Syntax
-
-```powershell
-Get-DevContainerConfiguration
-    [[-ConfigFile] <String>]
-    [[-OutputFormat] <String>]
-    [<CommonParameters>]
-```
-
-## Validation Functions
-
-### Test-DevContainerSetup
-
-Comprehensive validation of DevContainer setup.
-
-#### Syntax
-
-```powershell
-Test-DevContainerSetup
-    [[-Path] <String>]
-    [-CheckSyntax]
-    [-CheckConfiguration]
-    [-CheckExamples]
-    [-CheckSecurity]
-    [-Detailed]
-    [[-Tags] <String[]>]
-    [<CommonParameters>]
-```
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| Path | String | No | Path to project directory (default: current) |
-| CheckSyntax | Switch | No | Validate PowerShell syntax |
-| CheckConfiguration | Switch | No | Validate configuration files |
-| CheckExamples | Switch | No | Validate example files |
-| CheckSecurity | Switch | No | Run security validation |
-| Detailed | Switch | No | Return detailed results |
-| Tags | String[] | No | Specific test tags to run |
-
-#### Returns
-
-Returns a validation result object:
-
-```powershell
-@{
-    Success = $true
-    TestsRun = 15
-    TestsPassed = 15
-    TestsFailed = 0
-    Duration = "00:00:30.1234567"
-    Issues = @()
-    Details = @{
-        Syntax = @{ Passed = 5; Failed = 0 }
-        Configuration = @{ Passed = 4; Failed = 0 }
-        Examples = @{ Passed = 3; Failed = 0 }
-        Security = @{ Passed = 3; Failed = 0 }
-    }
-}
-```
-
-### Invoke-SecurityScan
-
-Runs comprehensive security scanning.
-
-#### Syntax
-
-```powershell
-Invoke-SecurityScan
-    [[-Path] <String>]
-    [-RunCheckov]
-    [-RunTfsec]
-    [-RunPSRule]
-    [-ExportResults]
-    [[-OutputPath] <String>]
-    [<CommonParameters>]
-```
-
-## Documentation Functions
-
-### Update-ProjectDocumentation
-
-Generates and updates project documentation.
-
-#### Syntax
-
-```powershell
-Update-ProjectDocumentation
-    [[-Path] <String>]
-    [-UpdateReadme]
-    [-GenerateTerraformDocs]
-    [-GenerateBicepDocs]
-    [-IncludeExamples]
-    [[-DocumentationType] <String>]
-    [[-OutputFormat] <String>]
-    [<CommonParameters>]
-```
-
-### Export-ProjectConfiguration
-
-Exports project configuration for sharing or backup.
-
-#### Syntax
-
-```powershell
-Export-ProjectConfiguration
-    [[-Path] <String>]
-    [-IncludeSecrets]
-    [[-Format] <String>]
-    [[-OutputFile] <String>]
-    [<CommonParameters>]
-```
-
-## Utility Functions
-
-### Get-AzureContext
-
-Gets current Azure authentication context.
-
-#### Syntax
-
-```powershell
-Get-AzureContext
-    [[-TenantId] <String>]
-    [[-SubscriptionId] <String>]
-    [-Validate]
-    [<CommonParameters>]
-```
-
-### Set-AzureContext
-
-Sets Azure authentication context.
-
-#### Syntax
-
-```powershell
-Set-AzureContext
+Get-BackendConfiguration
     [-TenantId] <String>
     [-SubscriptionId] <String>
-    [[-AuthenticationMethod] <String>]
-    [-Force]
-    [<CommonParameters>]
+    [-ProjectName] <String>
 ```
 
-### Test-Prerequisites
+## DevContainerModule Functions
 
-Tests system prerequisites for DevContainer functionality.
+### Initialize-ProjectDirectory
+
+Creates and initializes the project directory structure.
 
 #### Syntax
 
 ```powershell
-Test-Prerequisites
-    [-CheckPowerShell]
-    [-CheckDocker]
-    [-CheckAzureCLI]
-    [-CheckModules]
-    [-Detailed]
-    [<CommonParameters>]
+Initialize-ProjectDirectory
+    [-ProjectName] <String>
+    [-ProjectPath] <String>
 ```
+
+### Copy-DevContainerFiles
+
+Copies DevContainer configuration files to the project.
+
+#### Syntax
+
+```powershell
+Copy-DevContainerFiles
+    [-ProjectPath] <String>
+```
+
+### New-DevContainerEnv
+
+Creates environment configuration for the DevContainer.
+
+#### Syntax
+
+```powershell
+New-DevContainerEnv
+    [-TenantId] <String>
+    [-SubscriptionId] <String>
+    [-ProjectName] <String>
+    [-StorageAccountName] <String>
+    [-ContainerName] <String>
+    [-ResourceGroupName] <String>
+```
+
+## ProjectModule Functions
+
+### Add-ExampleFiles
+
+Adds example Infrastructure as Code files to the project.
+
+#### Syntax
+
+```powershell
+Add-ExampleFiles
+    [-ProjectPath] <String>
+    [-ProjectType] <String>
+```
+
+## Usage Examples
+
+### Basic DevContainer Initialization
+
+```powershell
+# Load the main script which imports all modules
+.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
+                              -SubscriptionId "your-subscription-id" `
+                              -ProjectName "my-project"
+```
+
+### Testing Prerequisites
+
+```powershell
+# Import CommonModule and test prerequisites
+Import-Module .\modules\CommonModule.psm1
+Test-Prerequisites
+```
+
+### Azure Backend Creation
+
+```powershell
+# Import AzureModule and create backend
+Import-Module .\modules\AzureModule.psm1
+$backend = New-AzureTerraformBackend -SubscriptionId "sub-id" `
+                                     -ResourceGroupName "rg-terraform" `
+                                     -StorageAccountName "tfstate" `
+                                     -ContainerName "tfstate" `
+                                     -Location "eastus"
+```
+
+### Interactive Configuration
+
+```powershell
+# Import InteractiveModule for user prompts
+Import-Module .\modules\InteractiveModule.psm1
+$config = Get-InteractiveInput
+```
+
+## Module Dependencies
+
+The modules have the following dependencies:
+
+- **CommonModule**: No dependencies (base module)
+- **AzureModule**: Requires Azure PowerShell modules
+- **InteractiveModule**: Depends on CommonModule
+- **DevContainerModule**: Depends on CommonModule  
+- **ProjectModule**: Depends on CommonModule
 
 ## Error Handling
 
-All functions include comprehensive error handling and return consistent error objects:
+All modules include comprehensive error handling with:
+
+- **Detailed error messages** for troubleshooting
+- **Graceful fallbacks** when possible
+- **Consistent error codes** across modules
+- **Logging support** for debugging
+
+## Testing
+
+The modules are tested using Pester with comprehensive unit and integration tests:
 
 ```powershell
-@{
-    Success = $false
-    Error = @{
-        Category = "InvalidOperation"
-        Message = "Detailed error message"
-        Exception = $_.Exception
-        ScriptStackTrace = $_.ScriptStackTrace
-    }
-    Timestamp = (Get-Date)
-}
+# Run all tests
+.\tests\Run-Tests.ps1
+
+# Run module-specific tests
+Invoke-Pester .\tests\unit\CommonModule.Tests.ps1
+Invoke-Pester .\tests\unit\AzureModule.Tests.ps1
 ```
 
-## Common Parameters
+For more information on troubleshooting, see the [Troubleshooting Guide](/docs/troubleshooting/).
 
-All functions support PowerShell common parameters:
-- `-Verbose` - Detailed operation output
-- `-Debug` - Debug information
-- `-ErrorAction` - Error handling behavior
-- `-WarningAction` - Warning handling behavior
-- `-InformationAction` - Information stream behavior
-- `-ErrorVariable` - Error variable assignment
-- `-WarningVariable` - Warning variable assignment
-- `-InformationVariable` - Information variable assignment
-- `-OutVariable` - Output variable assignment
-- `-OutBuffer` - Output buffering
-- `-PipelineVariable` - Pipeline variable assignment
+## Contributing
 
-## Examples
+When contributing new functions to the modules:
 
-For practical examples of using these functions, see the [Examples documentation](/docs/examples/) and the PowerShell usage examples in the repository.
+1. Follow PowerShell naming conventions
+2. Include comprehensive parameter validation
+3. Add proper help documentation
+4. Include unit tests
+5. Update this documentation
+
+For more details, see the [Contributing Guide](https://github.com/haflidif/devcontainer-template/blob/main/CONTRIBUTING.md).

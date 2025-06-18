@@ -68,23 +68,44 @@ When prompted, choose **"Reopen in Container"** to start the DevContainer.
 
 ## Advanced Setup Options
 
-### PowerShell Module Installation
+### Modular Architecture
 
-For enhanced automation and reusable workflows:
+The template now uses a modular PowerShell architecture with specialized modules:
 
 ```powershell
-# Install the DevContainer Accelerator module
-.\Install-DevContainerAccelerator.ps1
+# Main initialization script loads all modules automatically
+.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
+                              -SubscriptionId "your-subscription-id" `
+                              -ProjectName "my-project"
 
-# Create a complete new project
-New-IaCProject -ProjectName "my-infrastructure" `
-               -TenantId "your-tenant-id" `
-               -SubscriptionId "your-subscription-id" `
-               -ProjectType "both" `
-               -Environment "dev" `
-               -Location "eastus" `
-               -InitializeGit `
-               -IncludeExamples
+# Interactive mode (prompts for inputs)
+.\Initialize-DevContainer.ps1
+
+# WhatIf mode (preview without changes)
+.\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
+                              -SubscriptionId "your-subscription-id" `
+                              -ProjectName "my-project" `
+                              -WhatIf
+```
+
+### Manual Module Usage
+
+For advanced users who want to use individual modules:
+
+```powershell
+# Load specific modules as needed
+Import-Module .\modules\CommonModule.psm1
+Import-Module .\modules\AzureModule.psm1
+Import-Module .\modules\DevContainerModule.psm1
+
+# Test prerequisites
+if (-not (Test-Prerequisites)) {
+    Write-Error "Prerequisites not met"
+    exit 1
+}
+
+# Create project manually
+Initialize-ProjectDirectory -ProjectName "my-project" -ProjectPath "C:\Projects"
 ```
 
 ### Manual Setup
@@ -119,7 +140,7 @@ After setup, explore these areas:
 - **[Configuration Guide](/docs/configuration/)** - Customize the template for your needs
 - **[Testing Framework](/docs/testing/)** - Learn about the Pester testing system
 - **[Examples](/docs/examples/)** - Review practical implementation examples
-- **[PowerShell Module](/docs/powershell/)** - Use advanced automation features
+- **[Module Reference](/docs/api/)** - Complete function documentation
 
 ## Verification
 
@@ -128,26 +149,36 @@ To verify your setup is working correctly:
 ### Quick Health Check
 
 ```powershell
-# Test basic functionality
-.\tests\Test-DevContainer.ps1 -Mode Quick -Tags "Syntax,Module"
+# Validate DevContainer setup
+.\Validate-DevContainerAccelerator.ps1
 
-# Expected output: All tests should pass ✅
+# Expected output: All validations should pass ✅
 ```
 
-### Full Validation
+### Full Testing
 
 ```powershell
-# Run all 38 comprehensive tests
-.\tests\Test-DevContainer.ps1 -Mode Full
+# Run all comprehensive tests
+.\tests\Run-Tests.ps1
 
-# Expected: Detailed test results with summary
+# Run specific test categories
+.\tests\Run-Tests.ps1 -Tags "Syntax,Module,Integration"
+```
+
+### Module Testing
+
+```powershell
+# Test individual modules
+Invoke-Pester .\tests\unit\CommonModule.Tests.ps1
+Invoke-Pester .\tests\unit\AzureModule.Tests.ps1
+Invoke-Pester .\tests\integration\Initialize-DevContainer.Tests.ps1
 ```
 
 ### CI Mode (for automation)
 
 ```powershell
-# Generate XML output for CI/CD
-.\tests\Test-DevContainer.ps1 -Mode CI
+# Run tests with CI output format
+.\tests\Run-Tests.ps1 -OutputFormat NUnitXml -OutputFile "TestResults.xml"
 
 # Check exit code
 echo $LASTEXITCODE  # Should be 0 for success
