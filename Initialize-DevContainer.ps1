@@ -330,11 +330,20 @@ try {
     
     # Validate required parameters FIRST (before prerequisites check for fast failure in CI)
     if (-not ($WhatIf -or $DryRun)) {
+        $validationErrors = @()
+        
         if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
-            throw "Valid Azure Tenant ID is required"
+            $validationErrors += "Valid Azure Tenant ID is required"
         }
         if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
-            throw "Valid Azure Subscription ID is required"
+            $validationErrors += "Valid Azure Subscription ID is required"
+        }
+        
+        if ($validationErrors.Count -gt 0) {
+            foreach ($validationError in $validationErrors) {
+                Write-ColorOutput "❌ Error: $validationError" "Red"
+            }
+            exit 1
         }
     } else {
         # In WhatIf mode, provide dummy values if not specified
