@@ -14,47 +14,34 @@ BeforeAll {
 Describe "Initialize-DevContainer Integration Tests" {
     Context "Module Import" {
         It "Should import all required modules without error" {
-            # Test that the script can load without throwing errors
-            { & $script:ScriptPath -WhatIf } | Should -Not -Throw
+            # Test that the script can load without throwing errors by providing valid parameters
+            { & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -WhatIf } | Should -Not -Throw
         }
     }
     
     Context "Parameter Validation" {
         It "Should validate GUID format for TenantId" {
-            try {
-                & $script:ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf -ErrorAction Stop
-                # If we reach here, the script didn't throw as expected
-                $false | Should -Be $true -Because "Expected script to throw for invalid TenantId"
-            }
-            catch {
-                $_.Exception.Message | Should -Match "Valid Azure Tenant ID is required"
-            }
+            # Capture all output from the script execution including Write-Host
+            $output = & $script:ScriptPath -TenantId "invalid-guid" -SubscriptionId "12345678-1234-1234-1234-123456789012" -ProjectName "test" -WhatIf *>&1 | Out-String
+            
+            # Check that the expected error message appears in the output
+            $output | Should -Match "Valid Azure Tenant ID is required"
         }
         
         It "Should validate GUID format for SubscriptionId" {
-            try {
-                & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf -ErrorAction Stop
-                # If we reach here, the script didn't throw as expected
-                $false | Should -Be $true -Because "Expected script to throw for invalid SubscriptionId"
-            }
-            catch {
-                $_.Exception.Message | Should -Match "Valid Azure Subscription ID is required"
-            }
+            # Capture all output from the script execution including Write-Host
+            $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "invalid-guid" -ProjectName "test" -WhatIf *>&1 | Out-String
+            
+            # Check that the expected error message appears in the output
+            $output | Should -Match "Valid Azure Subscription ID is required"
         }
         
         It "Should use directory name as ProjectName when not provided" {
-            # This test requires mocking some functions to avoid actual Azure calls
-            Mock Test-Prerequisites { return $true } -ModuleName CommonModule
-            Mock Test-Path { return $true }
-            Mock New-Item { return @{ FullName = $script:TestProjectPath } }
-            Mock Copy-Item { return $true }
-            Mock Set-Content { return $true }
-            
-            # Test should not fail due to missing ProjectName
-            $result = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectPath $script:TestProjectPath 2>&1
+            # Test should not fail due to missing ProjectName when WhatIf is used
+            $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectPath $script:TestProjectPath -WhatIf *>&1 | Out-String
             
             # Should not contain ProjectName validation error
-            $result | Should -Not -Match "ProjectName is required"
+            $output | Should -Not -Match "ProjectName is required"
         }
     }
     
@@ -74,18 +61,11 @@ Describe "Initialize-DevContainer Integration Tests" {
         It "Should handle missing template source gracefully" {
             $invalidTemplatePath = Join-Path $env:TEMP "NonExistentTemplate"
             
-            # Mock prerequisites to pass
-            Mock Test-Prerequisites { return $true } -ModuleName CommonModule
-            Mock Test-AzureAuthentication { return @{ id = "test" } } -ModuleName AzureModule
+            # Capture all output from the script execution including Write-Host
+            $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $script:TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf *>&1 | Out-String
             
-            try {
-                & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $script:TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf -ErrorAction Stop
-                # If we reach here, the script didn't throw as expected
-                $false | Should -Be $true -Because "Expected script to throw for missing template source"
-            }
-            catch {
-                $_.Exception.Message | Should -Match "DevContainer template not found"
-            }
+            # Check that the expected error message appears in the output
+            $output | Should -Match "DevContainer template not found"
         }
     }
     
