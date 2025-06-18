@@ -66,7 +66,7 @@ Our comprehensive documentation covers:
 
 - **[Getting Started Guide](https://haflidif.github.io/devcontainer-template/docs/getting-started/)** - Step-by-step setup and configuration
 - **[Examples](https://haflidif.github.io/devcontainer-template/docs/examples/)** - Real-world usage patterns and templates
-- **[PowerShell Module](https://haflidif.github.io/devcontainer-template/docs/api/)** - DevContainerAccelerator module function reference
+- **[PowerShell Module](https://haflidif.github.io/devcontainer-template/docs/api/)** - Modular PowerShell architecture function reference
 - **[Testing Framework](https://haflidif.github.io/devcontainer-template/docs/testing/)** - Comprehensive validation and testing guide
 - **[Configuration](https://haflidif.github.io/devcontainer-template/docs/configuration/)** - Advanced setup and customization
 - **[Troubleshooting](https://haflidif.github.io/devcontainer-template/docs/troubleshooting/)** - Common issues and solutions
@@ -106,7 +106,7 @@ We welcome contributions! Please see our [documentation site](https://haflidif.g
 
 - **[Contributing Guide](https://haflidif.github.io/devcontainer-template/docs/contributing/)** - How to contribute to the project
 - **[Development Setup](https://haflidif.github.io/devcontainer-template/docs/development/)** - Setting up your development environment
-- **[Module Reference](https://haflidif.github.io/devcontainer-template/docs/api/)** - DevContainerAccelerator module function reference
+- **[Module Reference](https://haflidif.github.io/devcontainer-template/docs/api/)** - Modular PowerShell architecture function reference
 
 ## 📄 License
 

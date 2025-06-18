@@ -10,13 +10,18 @@ This directory contains PowerShell scripts demonstrating automation capabilities
 
 ## 🚀 Quick Start
 
-### 1. Import the Module
+### 1. Import the Modules
 ```powershell
-# Import the DevContainer Accelerator module
-Import-Module ../DevContainerAccelerator
+# Import the modular DevContainer Template architecture
+$ModulesPath = Join-Path $PSScriptRoot "..\..\modules"
+Import-Module (Join-Path $ModulesPath "CommonModule.psm1")
+Import-Module (Join-Path $ModulesPath "AzureModule.psm1") 
+Import-Module (Join-Path $ModulesPath "DevContainerModule.psm1")
 
-# Verify module is loaded
-Get-Module DevContainerAccelerator
+# Verify modules are loaded
+Get-Command -Module CommonModule
+Get-Command -Module AzureModule
+Get-Command -Module DevContainerModule
 ```
 
 ### 2. Run Examples
@@ -118,10 +123,12 @@ Test-TerraformBackend -StorageAccount "nonexistent" -Container "test"  # Should 
 ### Module Validation
 ```powershell
 # Check module exports
-Get-Command -Module DevContainerAccelerator
+Get-Command -Module AzureModule
+Get-Command -Module CommonModule
+Get-Command -Module DevContainerModule
 
 # Verify help documentation
-Get-Help New-TerraformBackend -Full
+Get-Help New-AzureTerraformBackend -Full
 Get-Help Write-ColorOutput -Examples
 ```
 

@@ -5,33 +5,36 @@
     Examples demonstrating advanced Terraform backend management capabilities.
 
 .DESCRIPTION
-    This script contains examples showing how to use the DevContainer Accelerator
-    module for sophisticated Terraform backend management scenarios, including
-    cross-subscription backends, validation, and guided setup.
+    This script contains examples showing how to use the DevContainer Template
+    modular architecture for sophisticated Terraform backend management scenarios, 
+    including cross-subscription backends, validation, and guided setup.
 
 .NOTES
     Author: DevContainer Template
     Version: 1.0
-    Requires: DevContainerAccelerator PowerShell Module
+    Requires: DevContainer Template Modular PowerShell Architecture
 #>
 
-# Import the DevContainer Accelerator module (if installed)
-# Import-Module DevContainerAccelerator
+# Import the required modules
+$ModulesPath = Join-Path $PSScriptRoot "..\..\modules"
+Import-Module (Join-Path $ModulesPath "CommonModule.psm1") -Force
+Import-Module (Join-Path $ModulesPath "AzureModule.psm1") -Force
+Import-Module (Join-Path $ModulesPath "InteractiveModule.psm1") -Force
 
-Write-Host "🏗️  DevContainer Backend Management Examples" -ForegroundColor Magenta
-Write-Host "═══════════════════════════════════════════════" -ForegroundColor Magenta
+Write-Host "🏗️  DevContainer Backend Management Examples (Modular)" -ForegroundColor Magenta
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Magenta
 
 # Example 1: Basic Backend Creation
 Write-Host "`n📝 Example 1: Basic Backend Creation" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
 $example1 = @'
-# Create a basic Terraform backend in the current subscription
-New-TerraformBackend -StorageAccountName "myprojecttfstate" `
-                    -ResourceGroupName "terraform-rg" `
-                    -ContainerName "tfstate" `
-                    -Location "eastus" `
-                    -CreateResourceGroup
+# Create a basic Terraform backend using modular functions
+New-AzureTerraformBackend -StorageAccountName "myprojecttfstate" `
+                         -ResourceGroupName "terraform-rg" `
+                         -ContainerName "tfstate" `
+                         -Location "eastus" `
+                         -SubscriptionId "your-subscription-id"
 
 # This will:
 # 1. Create the resource group if it doesn't exist
@@ -42,12 +45,32 @@ New-TerraformBackend -StorageAccountName "myprojecttfstate" `
 
 Write-Host $example1 -ForegroundColor Gray
 
-# Example 2: Cross-Subscription Backend
-Write-Host "`n📝 Example 2: Cross-Subscription Backend" -ForegroundColor Cyan
+# Example 2: Cross-Subscription Backend with Validation
+Write-Host "`n📝 Example 2: Cross-Subscription Backend with Validation" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
 $example2 = @'
-# Store Terraform state in a different subscription (common in enterprise scenarios)
+# Store Terraform state in a different subscription using modular approach
+$backendSubscription = "backend-subscription-id"
+$projectSubscription = "project-subscription-id"
+
+# Test authentication for both subscriptions
+Test-AzureAuthentication -SubscriptionId $backendSubscription
+Test-AzureAuthentication -SubscriptionId $projectSubscription
+
+# Create backend in the backend subscription
+$backend = New-AzureTerraformBackend -StorageAccountName "enterprisetfstate" `
+                                    -ResourceGroupName "shared-terraform-rg" `
+                                    -ContainerName "project-states" `
+                                    -Location "centralus" `
+                                    -SubscriptionId $backendSubscription
+
+# Validate the backend configuration
+Test-TerraformBackend -StorageAccountName $backend.StorageAccount `
+                     -ResourceGroupName $backend.ResourceGroup `
+                     -ContainerName $backend.Container `
+                     -SubscriptionId $backendSubscription
+'@
 $projectSubscription = "12345678-1234-1234-1234-123456789012"
 $backendSubscription = "87654321-4321-4321-4321-210987654321"
 

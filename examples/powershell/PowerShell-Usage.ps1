@@ -1,51 +1,48 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Example usage of the DevContainer Accelerator module.
+    Example usage of the DevContainer Template modular PowerShell architecture.
 
 .DESCRIPTION
-    This script demonstrates various ways to use the DevContainer Accelerator
+    This script demonstrates various ways to use the modular DevContainer Template
     for setting up Infrastructure as Code projects.
 #>
 
-# Import the module from relative path
-$ModulePath = Join-Path $PSScriptRoot "..\DevContainerAccelerator\DevContainerAccelerator.psm1"
-Import-Module $ModulePath -Force
+# Import the modules from relative path
+$ModulesPath = Join-Path $PSScriptRoot "..\..\modules"
+Import-Module (Join-Path $ModulesPath "CommonModule.psm1") -Force
+Import-Module (Join-Path $ModulesPath "AzureModule.psm1") -Force  
+Import-Module (Join-Path $ModulesPath "DevContainerModule.psm1") -Force
+Import-Module (Join-Path $ModulesPath "ProjectModule.psm1") -Force
 
-Write-Host "🚀 DevContainer Accelerator Examples" -ForegroundColor Magenta
-Write-Host "═══════════════════════════════════════" -ForegroundColor Magenta
+Write-Host "🚀 DevContainer Template Examples (Modular Architecture)" -ForegroundColor Magenta
+Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Magenta
 
 # Example 1: Check prerequisites
 Write-Host "`n📋 Example 1: Check Prerequisites" -ForegroundColor Cyan
-Write-Host "Test-DevContainerPrerequisites" -ForegroundColor Yellow
-Test-DevContainerPrerequisites
+Write-Host "Test-Prerequisites" -ForegroundColor Yellow
+Test-Prerequisites
 
-# Example 2: Create a new Terraform project
-Write-Host "`n📋 Example 2: Create New Terraform Project" -ForegroundColor Cyan
+# Example 2: Create Azure backend
+Write-Host "`n📋 Example 2: Create Azure Terraform Backend" -ForegroundColor Cyan
 $exampleCommand = @"
-New-IaCProject -ProjectName "example-terraform-project" ``
-               -TenantId "12345678-1234-1234-1234-123456789012" ``
-               -SubscriptionId "87654321-4321-4321-4321-210987654321" ``
-               -ProjectType "terraform" ``
-               -Environment "dev" ``
-               -Location "eastus" ``
-               -InitializeGit ``
-               -IncludeExamples
+New-AzureTerraformBackend -StorageAccountName "myprojecttfstate" ``
+                         -ResourceGroupName "terraform-rg" ``
+                         -ContainerName "tfstate" ``
+                         -Location "eastus" ``
+                         -SubscriptionId "your-subscription-id"
 "@
 
 Write-Host $exampleCommand -ForegroundColor Yellow
-Write-Host "(This is a demo - not actually creating the project)" -ForegroundColor Gray
+Write-Host "(This is a demo - not actually creating the backend)" -ForegroundColor Gray
 
 # Example 3: Initialize DevContainer in existing project
-Write-Host "`n📋 Example 3: Add DevContainer to Existing Project" -ForegroundColor Cyan
+Write-Host "`n📋 Example 3: Initialize DevContainer Configuration" -ForegroundColor Cyan
 $exampleCommand2 = @"
-Initialize-DevContainer -TenantId "12345678-1234-1234-1234-123456789012" ``
-                       -SubscriptionId "87654321-4321-4321-4321-210987654321" ``
-                       -ProjectName "my-existing-project" ``
-                       -Environment "prod" ``
-                       -Location "westeurope" ``
-                       -ProjectType "both" ``
-                       -IncludeExamples
+Initialize-ProjectDirectory -ProjectPath "." ``
+                           -ProjectType "terraform"
+Copy-DevContainerFiles -SourcePath "..\..\templates" ``
+                       -TargetPath "."
 "@
 
 Write-Host $exampleCommand2 -ForegroundColor Yellow

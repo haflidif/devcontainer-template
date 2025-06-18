@@ -2,14 +2,14 @@
 
 <#
 .SYNOPSIS
-    Validates DevContainer Accelerator modules and script integrity.
+    Validates DevContainer template modules and script integrity.
 
 .DESCRIPTION
     Performs basic validation checks on all modules and the main script
     to ensure they can be loaded without errors.
 #>
 
-Write-Host "🔍 DevContainer Accelerator Validation" -ForegroundColor Blue
+Write-Host "🔍 DevContainer Template Validation" -ForegroundColor Blue
 Write-Host "════════════════════════════════════════" -ForegroundColor Blue
 
 $ErrorCount = 0
