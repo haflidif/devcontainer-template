@@ -1,9 +1,20 @@
 #Requires -Modules Pester
 
 BeforeAll {
-    # Test paths
-    $script:ScriptPath = Join-Path $PSScriptRoot "..\..\Initialize-DevContainer.ps1"
-    $script:TestProjectPath = Join-Path $env:TEMP "DevContainerTest-$(Get-Random)"
+    # Test paths - Use more robust path resolution for CI environments
+    $testDir = if ($PSScriptRoot) { 
+        $PSScriptRoot 
+    } else { 
+        Split-Path -Parent $MyInvocation.MyCommand.Path 
+    }
+    
+    $script:ScriptPath = Join-Path (Split-Path (Split-Path $testDir -Parent) -Parent) "Initialize-DevContainer.ps1"
+    $script:TestProjectPath = Join-Path ([System.IO.Path]::GetTempPath()) "DevContainerTest-$(Get-Random)"
+    
+    # Validate that the script exists
+    if (-not (Test-Path $script:ScriptPath)) {
+        throw "Initialize-DevContainer.ps1 not found at: $script:ScriptPath"
+    }
     
     # Ensure test project directory doesn't exist
     if (Test-Path $script:TestProjectPath) {
@@ -80,10 +91,23 @@ Describe "Initialize-DevContainer Integration Tests" {
             )
             
             foreach ($projectName in $testCases) {
-                # Import the module to test the function directly
-                $ModulesPath = Join-Path (Split-Path $script:ScriptPath) "modules"
-                Import-Module (Join-Path $ModulesPath "CommonModule.psm1") -Force
-                Import-Module (Join-Path $ModulesPath "AzureModule.psm1") -Force
+                # Import the module to test the function directly - Use robust path resolution
+                $scriptDir = Split-Path $script:ScriptPath -Parent
+                $ModulesPath = Join-Path $scriptDir "modules"
+                
+                # Validate modules exist before importing
+                $commonModulePath = Join-Path $ModulesPath "CommonModule.psm1"
+                $azureModulePath = Join-Path $ModulesPath "AzureModule.psm1"
+                
+                if (-not (Test-Path $commonModulePath)) {
+                    throw "CommonModule.psm1 not found at: $commonModulePath"
+                }
+                if (-not (Test-Path $azureModulePath)) {
+                    throw "AzureModule.psm1 not found at: $azureModulePath"
+                }
+                
+                Import-Module $commonModulePath -Force
+                Import-Module $azureModulePath -Force
                 
                 $result = New-AzureStorageAccountName -ProjectName $projectName -Environment "dev" -Purpose "tfstate"
                 
@@ -97,8 +121,8 @@ Describe "Initialize-DevContainer Integration Tests" {
 }
 
 AfterAll {
-    # Final cleanup
-    if (Test-Path $script:TestProjectPath) {
+    # Final cleanup - Add null check for CI safety
+    if ($script:TestProjectPath -and (Test-Path $script:TestProjectPath)) {
         Remove-Item $script:TestProjectPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
