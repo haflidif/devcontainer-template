@@ -6,7 +6,7 @@
 
 .DESCRIPTION
     This script sets up a complete DevContainer environment for Terraform and/or Bicep development.
-    It copies the necessary DevContainer files, creates a customized environme    Write-ColorOutput "🏗️  DevContainer Template for Infrastructure as Code" "Blue"t configuration,
+    It copies the necessary DevContainer files, creates a customized environment configuration,
     and optionally initializes the project with example files.
 
 .PARAMETER ProjectPath
@@ -225,49 +225,11 @@ function New-AzureStorageAccountName {
     }
 }
 
-function New-AzureTerraformBackend {
-    param(
-        [string]$StorageAccountName,
-        [string]$ResourceGroupName,
-        [string]$ContainerName,
-        [string]$Location,
-        [string]$SubscriptionId,
-        [switch]$CreateResourceGroup,
-        [string]$DisplayName = "",
-        [string]$ProjectName = "",
-        [string]$Environment = "",
-        [string]$Purpose = ""
-    )
-    
-    Write-ColorOutput "ℹ️ Backend creation requires full Azure module functionality" "Yellow"
-    Write-ColorOutput "   This is a simplified fallback - use modules for full features" "Gray"
-    
-    return @{
-        StorageAccount = $StorageAccountName
-        ResourceGroup = $ResourceGroupName
-        Container = $ContainerName
-        SubscriptionId = $SubscriptionId
-        Location = $Location
-        Created = $false
-        Message = "Basic fallback - modules required for actual creation"
-    }
-}
+# New-AzureTerraformBackend function removed - using module version only
+# This ensures we always use the real Azure backend creation from AzureModule.psm1
 
-function Test-TerraformBackend {
-    param(
-        [string]$StorageAccountName,
-        [string]$ResourceGroupName,
-        [string]$ContainerName,
-        [string]$SubscriptionId
-    )
-    
-    Write-ColorOutput "ℹ️ Backend validation requires full Azure module functionality" "Yellow"
-    
-    return @{
-        Valid = $false
-        Message = "Validation requires Azure modules"
-    }
-}
+# Test-TerraformBackend function removed - using module version only
+# This ensures we always use the real Azure backend validation from AzureModule.psm1
 
 function Get-BackendConfiguration {
     param(
@@ -319,7 +281,7 @@ catch {
 
 # Main execution
 try {
-    Write-ColorOutput "� DevContainer Accelerator for Infrastructure as Code" "Blue"
+    Write-ColorOutput "🏗️  DevContainer Template for Infrastructure as Code" "Blue"
     Write-ColorOutput "═════════════════════════════════════════════════════" "Blue"
     
     # Handle WhatIf/DryRun mode
