@@ -327,10 +327,13 @@ try {
         Write-ColorOutput "� WhatIf/DryRun Mode - No changes will be made" "Yellow"
         Write-ColorOutput "═══════════════════════════════════════════════════" "Yellow"
     }
-    
-    # Check prerequisites
+      # Check prerequisites (skip exit in WhatIf mode for testing)
     if (-not (Test-Prerequisites)) {
-        exit 1
+        if (-not ($WhatIf -or $DryRun)) {
+            exit 1
+        } else {
+            Write-ColorOutput "⚠️ Prerequisites check failed, but continuing in WhatIf mode" "Yellow"
+        }
     }
     
     # Interactive mode handling

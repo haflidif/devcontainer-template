@@ -70,7 +70,9 @@ Describe "Initialize-DevContainer Integration Tests" {
         }
         
         It "Should handle missing template source gracefully" {
-            $invalidTemplatePath = Join-Path $env:TEMP "NonExistentTemplate"
+            # Use cross-platform temp path resolution
+            $tempPath = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+            $invalidTemplatePath = Join-Path $tempPath "NonExistentTemplate"
             
             # Capture all output from the script execution including Write-Host
             $output = & $script:ScriptPath -TenantId "12345678-1234-1234-1234-123456789012" -SubscriptionId "87654321-4321-4321-4321-210987654321" -ProjectName "test" -ProjectPath $script:TestProjectPath -TemplateSource $invalidTemplatePath -WhatIf *>&1 | Out-String
