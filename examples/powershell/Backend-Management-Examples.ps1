@@ -71,18 +71,27 @@ Test-TerraformBackend -StorageAccountName $backend.StorageAccount `
                      -ContainerName $backend.Container `
                      -SubscriptionId $backendSubscription
 '@
+
+Write-Host $example2 -ForegroundColor Gray
+
+# Example 3: Cross-Subscription Backend Setup
+Write-Host "`n📝 Example 3: Cross-Subscription Backend Setup" -ForegroundColor Cyan
+Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+
+$example3 = @'
+# Example: Cross-subscription backend configuration
 $projectSubscription = "12345678-1234-1234-1234-123456789012"
 $backendSubscription = "87654321-4321-4321-4321-210987654321"
 
 # Initialize DevContainer with cross-subscription backend
-Initialize-DevContainer -ProjectName "webapp-frontend" `
-                       -TenantId "your-tenant-id" `
-                       -SubscriptionId $projectSubscription `
-                       -BackendSubscriptionId $backendSubscription `
-                       -CreateBackend `
-                       -CreateBackendResourceGroup `
-                       -ProjectType "terraform" `
-                       -Environment "prod"
+.\Initialize-DevContainer.ps1 -ProjectName "webapp-frontend" `
+                              -TenantId "your-tenant-id" `
+                              -SubscriptionId $projectSubscription `
+                              -BackendSubscriptionId $backendSubscription `
+                              -CreateBackend `
+                              -CreateBackendResourceGroup `
+                              -ProjectType "terraform" `
+                              -Environment "prod"
 
 # This scenario is useful when:
 # - Centralized state management team manages all backends
@@ -90,13 +99,13 @@ Initialize-DevContainer -ProjectName "webapp-frontend" `
 # - Different teams own backend vs project subscriptions
 '@
 
-Write-Host $example2 -ForegroundColor Gray
+Write-Host $example3 -ForegroundColor Gray
 
-# Example 3: Validation Before Creation
-Write-Host "`n📝 Example 3: Validation Before Creation" -ForegroundColor Cyan
+# Example 4: Validation Before Creation
+Write-Host "`n📝 Example 4: Validation Before Creation" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-$example3 = @'
+$example4 = @'
 # Check if backend exists before proceeding with project setup
 $backendConfig = @{
     StorageAccountName = "companytfstate"
@@ -125,13 +134,13 @@ if ($validationResult.Valid) {
 }
 '@
 
-Write-Host $example3 -ForegroundColor Gray
+Write-Host $example4 -ForegroundColor Gray
 
-# Example 4: Interactive Guided Setup
-Write-Host "`n📝 Example 4: Interactive Guided Setup" -ForegroundColor Cyan
+# Example 5: Interactive Guided Setup
+Write-Host "`n📝 Example 5: Interactive Guided Setup" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-$example4 = @'
+$example5 = @'
 # Use the guided setup wizard for complex scenarios
 $backendConfig = Invoke-GuidedBackendSetup -ProjectName "enterprise-app" -Location "eastus"
 
@@ -155,13 +164,13 @@ if ($backendConfig.Valid) {
 }
 '@
 
-Write-Host $example4 -ForegroundColor Gray
+Write-Host $example5 -ForegroundColor Gray
 
-# Example 5: Backend Connectivity Testing
-Write-Host "`n📝 Example 5: Backend Connectivity Testing" -ForegroundColor Cyan
+# Example 6: Backend Connectivity Testing
+Write-Host "`n📝 Example 6: Backend Connectivity Testing" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-$example5 = @'
+$example6 = @'
 # Perform comprehensive testing of backend infrastructure
 $testResults = Test-BackendConnectivity -StorageAccountName "myprojecttfstate" `
                                        -ResourceGroupName "terraform-rg" `
@@ -183,13 +192,13 @@ if (-not $testResults.OverallStatus) {
 }
 '@
 
-Write-Host $example5 -ForegroundColor Gray
+Write-Host $example6 -ForegroundColor Gray
 
-# Example 6: List Available Subscriptions
-Write-Host "`n📝 Example 6: List Available Subscriptions" -ForegroundColor Cyan
+# Example 7: List Available Subscriptions
+Write-Host "`n📝 Example 7: List Available Subscriptions" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-$example6 = @'
+$example7 = @'
 # Get all subscriptions accessible to the current user
 $subscriptions = Get-AzureSubscriptions
 
@@ -206,13 +215,13 @@ foreach ($sub in $subscriptions) {
 # Especially useful in multi-tenant or enterprise environments
 '@
 
-Write-Host $example6 -ForegroundColor Gray
+Write-Host $example7 -ForegroundColor Gray
 
-# Example 7: Complete Project Workflow
-Write-Host "`n📝 Example 7: Complete Project Workflow" -ForegroundColor Cyan
+# Example 8: Complete Project Workflow
+Write-Host "`n📝 Example 8: Complete Project Workflow" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 
-$example7 = @'
+$example8 = @'
 # Complete workflow for setting up a new Infrastructure as Code project
 
 # Step 1: Check prerequisites
@@ -250,7 +259,7 @@ Test-BackendConnectivity -StorageAccountName "ecommerceplatformtfstate" `
 # - Validated backend connectivity
 '@
 
-Write-Host $example7 -ForegroundColor Gray
+Write-Host $example8 -ForegroundColor Gray
 
 Write-Host "`n💡 Pro Tips" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Yellow
