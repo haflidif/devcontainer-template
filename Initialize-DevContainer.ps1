@@ -362,15 +362,26 @@ try {
         }
         
         $exampleChoice = Get-InteractiveInput "Include example files? (y/n)" "y"
-        $IncludeExamples = $exampleChoice -match '^y|yes$'
-    }
+        $IncludeExamples = $exampleChoice -match '^y|yes$'    }
     
-    # Validate required parameters
-    if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
-        throw "Valid Azure Tenant ID is required"
-    }
-    if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
-        throw "Valid Azure Subscription ID is required"
+    # Validate required parameters (skip in WhatIf mode for CI testing)
+    if (-not ($WhatIf -or $DryRun)) {
+        if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
+            throw "Valid Azure Tenant ID is required"
+        }
+        if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
+            throw "Valid Azure Subscription ID is required"
+        }
+    } else {
+        # In WhatIf mode, provide dummy values if not specified
+        if (-not $TenantId) {
+            $TenantId = "12345678-1234-1234-1234-123456789012"
+            Write-ColorOutput "🧪 WhatIf mode: Using dummy Tenant ID" "Cyan"
+        }
+        if (-not $SubscriptionId) {
+            $SubscriptionId = "87654321-4321-4321-4321-210987654321"
+            Write-ColorOutput "🧪 WhatIf mode: Using dummy Subscription ID" "Cyan"
+        }
     }
     if (-not $ProjectName) {
         $ProjectName = Split-Path $ProjectPath -Leaf
