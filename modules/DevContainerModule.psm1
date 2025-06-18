@@ -84,7 +84,7 @@ function New-DevContainerEnv {
     
     Write-ColorOutput "🔧 Creating DevContainer environment configuration..." "Cyan"
     
-    $envPath = Join-Path $ProjectPath ".devcontainer\.env"
+    $envPath = Join-Path $ProjectPath ".devcontainer\devcontainer.env"
     
     $envContent = @"
 # Azure Configuration
@@ -116,7 +116,7 @@ TF_BACKEND_CONTAINER=$($BackendConfig.Container)
     
     try {
         Set-Content -Path $envPath -Value $envContent -Encoding UTF8
-        Write-ColorOutput "✅ Environment configuration created: .devcontainer\.env" "Green"
+        Write-ColorOutput "✅ Environment configuration created: .devcontainer\devcontainer.env" "Green"
         
         # Show environment file content for verification
         Write-ColorOutput "`n📋 Environment Configuration:" "White"
