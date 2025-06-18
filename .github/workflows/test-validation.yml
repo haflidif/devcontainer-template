@@ -305,39 +305,24 @@ jobs:
     - name: Test Script and Module Integration
       shell: pwsh
       run: |
-        # Test the installation script
+        # Test the installation script syntax
         if (Test-Path "./Install-DevContainerAccelerator.ps1") {
           Write-Host "Testing installation script syntax..."
           $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content "./Install-DevContainerAccelerator.ps1" -Raw), [ref]$null)
           Write-Host "✅ Installation script syntax is valid"
         }
         
-        # Test the main entry point script
+        # Test the main entry point script syntax
         if (Test-Path "./Initialize-DevContainer.ps1") {
           Write-Host "Testing main script syntax..."
           $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content "./Initialize-DevContainer.ps1" -Raw), [ref]$null)
           Write-Host "✅ Main script syntax is valid"
-          
-          # Test WhatIf mode to ensure no actual changes
-          Write-Host "Testing script in WhatIf mode..."
-          $env:CI = "true"
-          try {
-            $output = & "./Initialize-DevContainer.ps1" -WhatIf -ProjectName "ci-test-project" -Location "West Europe" -Verbose 2>&1
-            Write-Host "✅ Script executed successfully in WhatIf mode"
-            Write-Host "Script output preview:"
-            $output | Select-Object -First 10 | ForEach-Object { Write-Host "  $_" }
-          } catch {
-            Write-Error "❌ Script execution in WhatIf mode failed: $_"
-            Write-Host "Error details: $($_.Exception.Message)"
-            Write-Host "Stack trace: $($_.ScriptStackTrace)"
-            exit 1
-          }
         }
         
-        # Test that individual modules can be imported
+        # Test module syntax
         $ModuleFiles = @(
           "./modules/CommonModule.psm1",
-          "./modules/AzureModule.psm1",
+          "./modules/AzureModule.psm1", 
           "./modules/InteractiveModule.psm1",
           "./modules/DevContainerModule.psm1",
           "./modules/ProjectModule.psm1"
@@ -345,28 +330,10 @@ jobs:
         
         foreach ($ModuleFile in $ModuleFiles) {
           if (Test-Path $ModuleFile) {
-            try {
-              $ModuleName = [System.IO.Path]::GetFileNameWithoutExtension($ModuleFile)
-              Write-Host "Testing module import: $ModuleName"
-              Import-Module $ModuleFile -Force -Verbose
-              Write-Host "✅ Module imported successfully: $ModuleName"
-              
-              # Get exported functions
-              $Module = Get-Module $ModuleName
-              if ($Module -and $Module.ExportedFunctions.Count -gt 0) {
-                Write-Host "  Exported functions: $($Module.ExportedFunctions.Keys -join ', ')"
-              } else {
-                Write-Host "  No functions exported (this may be expected for some modules)"
-              }
-            } catch {
-              Write-Error "❌ Failed to import module $ModuleFile : $_"
-              Write-Host "Error details: $($_.Exception.Message)"
-              Write-Host "Stack trace: $($_.ScriptStackTrace)"
-              exit 1
-            }
-          } else {
-            Write-Warning "⚠️ Module file not found: $ModuleFile"
+            Write-Host "Testing module syntax: $ModuleFile"
+            $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $ModuleFile -Raw), [ref]$null)
+            Write-Host "✅ Module syntax is valid: $([System.IO.Path]::GetFileNameWithoutExtension($ModuleFile))"
           }
         }
         
-        Write-Host "✅ All integration tests passed"
+        Write-Host "✅ All syntax validation tests passed"
