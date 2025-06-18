@@ -322,11 +322,15 @@ jobs:
           Write-Host "Testing script in WhatIf mode..."
           $env:CI = "true"
           try {
-            & "./Initialize-DevContainer.ps1" -WhatIf -ProjectName "ci-test-project" -Location "West Europe" -Verbose
+            $output = & "./Initialize-DevContainer.ps1" -WhatIf -ProjectName "ci-test-project" -Location "West Europe" -Verbose 2>&1
             Write-Host "✅ Script executed successfully in WhatIf mode"
+            Write-Host "Script output preview:"
+            $output | Select-Object -First 10 | ForEach-Object { Write-Host "  $_" }
           } catch {
-            Write-Warning "⚠️ Script execution in WhatIf mode had issues: $_"
-            # Don't fail the build for WhatIf issues in CI
+            Write-Error "❌ Script execution in WhatIf mode failed: $_"
+            Write-Host "Error details: $($_.Exception.Message)"
+            Write-Host "Stack trace: $($_.ScriptStackTrace)"
+            exit 1
           }
         }
         
@@ -343,6 +347,7 @@ jobs:
           if (Test-Path $ModuleFile) {
             try {
               $ModuleName = [System.IO.Path]::GetFileNameWithoutExtension($ModuleFile)
+              Write-Host "Testing module import: $ModuleName"
               Import-Module $ModuleFile -Force -Verbose
               Write-Host "✅ Module imported successfully: $ModuleName"
               
@@ -350,11 +355,17 @@ jobs:
               $Module = Get-Module $ModuleName
               if ($Module -and $Module.ExportedFunctions.Count -gt 0) {
                 Write-Host "  Exported functions: $($Module.ExportedFunctions.Keys -join ', ')"
+              } else {
+                Write-Host "  No functions exported (this may be expected for some modules)"
               }
             } catch {
               Write-Error "❌ Failed to import module $ModuleFile : $_"
+              Write-Host "Error details: $($_.Exception.Message)"
+              Write-Host "Stack trace: $($_.ScriptStackTrace)"
               exit 1
             }
+          } else {
+            Write-Warning "⚠️ Module file not found: $ModuleFile"
           }
         }
         
