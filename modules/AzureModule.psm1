@@ -320,7 +320,7 @@ function New-AzureTerraformBackend {
                 --https-only true `
                 --min-tls-version TLS1_2 `
                 --allow-blob-public-access false `
-                --tags @tags `
+                --tags $tags `
                 --output json
                 
             if ($LASTEXITCODE -ne 0) {
@@ -349,16 +349,27 @@ function New-AzureTerraformBackend {
             
             # Update tags on existing storage account
             Write-ColorOutput "🏷️  Updating storage account tags..." "Cyan"
-            $null = az storage account update `
+            
+            # Build tags for the existing storage account (same format as creation)
+            $updateTags = @()
+            if ($DisplayName) { $updateTags += "DisplayName=$DisplayName" }
+            if ($ProjectName) { $updateTags += "ProjectName=$ProjectName" }
+            if ($Environment) { $updateTags += "Environment=$Environment" }
+            if ($Purpose) { $updateTags += "Purpose=$Purpose" }
+            $updateTags += "CreatedBy=DevContainer-Template"
+            $updateTags += "UpdatedDate=$(Get-Date -Format 'yyyy-MM-dd')"
+            
+            $updateResult = az storage account update `
                 --name $StorageAccountName `
                 --resource-group $ResourceGroupName `
-                --tags @tags `
+                --tags @updateTags `
                 --output json
                 
             if ($LASTEXITCODE -eq 0) {
-                Write-ColorOutput "✅ Storage account tags updated" "Green"
+                Write-ColorOutput "✅ Storage account tags updated successfully" "Green"
             } else {
                 Write-ColorOutput "⚠️  Failed to update storage account tags" "Yellow"
+                Write-ColorOutput "ℹ️  Update result: $updateResult" "Gray"
             }
         }
         
@@ -388,7 +399,7 @@ function New-AzureTerraformBackend {
             } else {
                 Write-ColorOutput "⚠️  Failed to create container - possibly due to network restrictions" "Yellow"
                 Write-ColorOutput "ℹ️  Error: $containerCreateResult" "Gray"
-                Write-ColorOutput "ℹ️  You may need to create the '$ContainerName' container manually" "Gray"
+                Write-ColorOutput "ℹ️  You may need to create the container manually: $ContainerName" "Gray"
                 Write-ColorOutput "ℹ️  Consider temporarily enabling public access or using a private endpoint" "Gray"
             }
         }
@@ -441,7 +452,7 @@ function Test-TerraformBackend {
         if (-not $storageCheck.Exists) {
             return @{
                 Valid = $false
-                Message = "Storage account '$StorageAccountName' not found in resource group '$ResourceGroupName'"
+                Message = "Storage account $StorageAccountName not found in resource group $ResourceGroupName"
             }
         }
         
@@ -450,7 +461,7 @@ function Test-TerraformBackend {
         if (-not $containerCheck.Exists) {
             return @{
                 Valid = $false
-                Message = "Container '$ContainerName' not found in storage account '$StorageAccountName'"
+                Message = "Container $ContainerName not found in storage account $StorageAccountName"
             }
         }
         
