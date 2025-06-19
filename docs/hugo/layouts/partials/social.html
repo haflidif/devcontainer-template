@@ -1,0 +1,10 @@
+{{- with .Site.Params.Social -}}
+<div class="gdoc-social">
+  {{- range . -}}
+    {{- $icon := printf "gdoc_%s" .name -}}
+    <a href="{{ .url }}" target="_blank" rel="noopener" class="gdoc-social__link" aria-label="{{ .name }}">
+      <svg class="gdoc-icon {{ $icon }}"><use xlink:href="#{{ $icon }}"></use></svg>
+    </a>
+  {{- end -}}
+</div>
+{{- end -}}

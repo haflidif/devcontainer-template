@@ -1,0 +1,47 @@
+<footer class="gdoc-footer">
+  <nav class="container flex">
+    <div>
+      <section class="flex flex-wrap align-center">
+        <span class="gdoc-footer__item gdoc-footer__item--row">
+          Built with ❤️, GitHub Copilot
+        </span>
+        {{ with .Site.Params.geekdocLegalNotice }}
+          <span class="gdoc-footer__item gdoc-footer__item--row">
+            <a href="{{ . | relURL }}" class="gdoc-footer__link">
+              {{ i18n "footer_legal_notice" }}
+            </a>
+          </span>
+        {{ end }}
+        {{ with .Site.Params.geekdocPrivacyPolicy }}
+          <span class="gdoc-footer__item gdoc-footer__item--row">
+            <a href="{{ . | relURL }}" class="gdoc-footer__link">
+              {{ i18n "footer_privacy_policy" }}
+            </a>
+          </span>
+        {{ end }}
+          <span class="gdoc-footer__item gdoc-footer__item--row">
+            <a href="https://github.com/haflidif" class="gdoc-footer__link">
+              Architected and ideas by Haflidi Fridthjofsson
+            </a>
+          </span>
+      </section>
+      {{ with .Site.Params.geekdocContentLicense }}
+        <section class="flex flex-wrap align-center">
+          <span class="gdoc-footer__item">
+            {{ i18n "footer_content_license_prefix" }}
+            <a href="{{ .link }}" class="gdoc-footer__link no-wrap">{{ .name }}</a>
+          </span>
+        </section>
+      {{ end }}
+    </div>
+    {{ if (default true .Site.Params.geekdocBackToTop) }}
+      <div class="flex flex-25 justify-end">
+        <span class="gdoc-footer__item text-right">
+          <a href="#top" class="gdoc-footer__link">
+            <i class="fas fa-arrow-up"></i> {{ i18n "footer_back_to_top" }}
+          </a>
+        </span>
+      </div>
+    {{ end }}
+  </nav>
+</footer>

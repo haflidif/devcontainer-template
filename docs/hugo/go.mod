@@ -3,6 +3,5 @@ module github.com/haflidif/devcontainer-template
 go 1.19
 
 require (
-	github.com/google/docsy v0.12.0 // indirect
-	github.com/google/docsy/dependencies v0.7.2 // indirect
+	github.com/thegeeklab/hugo-geekdoc v0.44.1 // indirect
 )

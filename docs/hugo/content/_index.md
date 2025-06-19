@@ -1,22 +1,17 @@
 ---
 title: "DevContainer Template"
-linkTitle: "DevContainer Template"
-description: "Modern, automated development container template with comprehensive tooling and documentation"
-type: docs
-menu:
-  main:
-    weight: 10
-cascade:
-  type: docs
+geekdocCollapseSection: false
+weight: 1
+geekdocAnchor: false
 ---
 
-{{% pageinfo %}}
+{{< hint type=important >}}
 **Welcome to the DevContainer Template Project!**
 
 This is a modern, comprehensive development container template featuring automated testing, documentation, and CI/CD workflows. The template is designed for rapid project setup with industry best practices.
 
-**Latest Update:** Fixed GitHub Actions workflow for reliable documentation deployment ✅
-{{% /pageinfo %}}
+**Latest Update:** Modern Hugo documentation with Geekdoc theme ✅
+{{< /hint >}}
 
 # DevContainer Template
 
@@ -34,20 +29,40 @@ A comprehensive, modern development container template featuring:
 
 Get started with your development environment in minutes:
 
-```bash
+{{< tabs "quickstart" >}}
+{{< tab "PowerShell" >}}
+```powershell
 # Clone the template
 git clone https://github.com/haflidif/devcontainer-template.git
 cd devcontainer-template
 
-# Initialize (PowerShell)
+# Initialize your environment
 .\Initialize-DevContainer.ps1
 
-# Run tests
+# Run comprehensive tests
 .\tests\Validate-DevContainer.ps1
 
 # Set up documentation site
 .\docs\Setup-Hugo.ps1 -Serve
 ```
+{{< /tab >}}
+{{< tab "Bash" >}}
+```bash
+# Clone the template
+git clone https://github.com/haflidif/devcontainer-template.git
+cd devcontainer-template
+
+# Initialize your environment
+pwsh ./Initialize-DevContainer.ps1
+
+# Run comprehensive tests
+pwsh ./tests/Validate-DevContainer.ps1
+
+# Set up documentation site
+cd docs/hugo && hugo server
+```
+{{< /tab >}}
+{{< /tabs >}}
 
 ## What's Included
 
@@ -56,7 +71,7 @@ cd devcontainer-template
 - **Azure Bicep** with compilation and linting
 - **PowerShell** with modern modules and accelerators  
 - **Security Tools**: TFSec, Checkov, PSRule
-- **Documentation**: Hugo with Docsy theme
+- **Documentation**: Hugo with Geekdoc theme
 
 ### Testing & Validation
 - **Pester Tests**: Comprehensive validation suite
@@ -74,7 +89,7 @@ cd devcontainer-template
 
 This template provides a complete development ecosystem:
 
-```mermaid
+{{< mermaid >}}
 graph TD
     A[DevContainer Template] --> B[Development Environment]
     A --> C[Testing Framework]
@@ -90,12 +105,14 @@ graph TD
     C --> C3[Validation Rules]
     
     D --> D1[Hugo Site]
-    D --> D2[Docsy Theme]
+    D --> D2[Geekdoc Theme]
     D --> D3[Auto-Deployment]
     
     E --> E1[GitHub Actions]
     E --> E2[Automated Testing]
     E --> E3[Documentation Deploy]
-```
+{{< /mermaid >}}
 
-Ready to get started? Check out our [Getting Started Guide](getting-started/) or explore the [Examples](examples/)!
+{{< hint type=tip >}}
+Ready to get started? Check out our [Getting Started Guide](docs/getting-started/) or explore the [Examples](docs/examples/)!
+{{< /hint >}}

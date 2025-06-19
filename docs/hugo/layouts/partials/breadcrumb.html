@@ -1,0 +1,21 @@
+{{- $showBreadcrumb := (default true .Site.Params.geekdocBreadcrumb) -}}
+{{- if and $showBreadcrumb (not .Params.geekdocBreadcrumb) -}}
+  {{- $showBreadcrumb = .Params.geekdocBreadcrumb -}}
+{{- end -}}
+
+{{- if and (default true .Site.Params.geekdocBreadcrumb) $showBreadcrumb -}}
+<nav class="gdoc-nav__breadcrumbs flex" aria-label="breadcrumbs">
+  <a href="{{ .Site.Home.RelPermalink }}" class="gdoc-nav__entry">
+    <svg class="gdoc-icon gdoc_home"><use xlink:href="#gdoc_home"></use></svg>
+  </a>
+  {{ template "breadcrumb-item" (dict "page" . "value" .Parent) }}
+</nav>
+{{- end -}}
+
+{{- define "breadcrumb-item" -}}
+  {{- if .value -}}
+    {{ template "breadcrumb-item" (dict "page" .page "value" .value.Parent) }}
+    <svg class="gdoc-icon gdoc_arrow_right"><use xlink:href="#gdoc_arrow_right"></use></svg>
+    <a href="{{ .value.RelPermalink }}" class="gdoc-nav__entry">{{ .value.Title }}</a>
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,39 @@
+{{- $author := .Site.Author -}}
+{{- $logo := .Site.Params.geekdocLogo | default "brand.svg" -}}
+{{- $tags := .Params.tags -}}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ .Title | jsonify }},
+  "image": {{ (printf "/%s" $logo) | absURL | jsonify }},
+  "author": {{ $author | jsonify }},
+  "genre": "{{ .Type }}",
+  {{ with $tags -}}
+  "keywords" : [ {{ range $i, $tag := $tags }}{{ if $i }}, {{ end }}"{{ $tag }}" {{ end }}],
+  {{- end }}
+  "copyrightHolder" : "{{ .Site.Title }}",
+  "copyrightYear" : "{{ .Date.Format "2006" }}",
+  "dateCreated": "{{ .Date.Format "2006-01-02T15:04:05.00Z" | safeJS }}",
+  "datePublished": "{{ .PublishDate.Format "2006-01-02T15:04:05.00Z" | safeJS }}",
+  "dateModified": "{{ .Lastmod.Format "2006-01-02T15:04:05.00Z" | safeJS }}",
+  "publisher":{
+      "@type":"Organization",
+      "name": {{ .Site.Title | jsonify }},
+      "url": {{ .Site.Home.Permalink | jsonify }},
+      "logo": {
+          "@type": "ImageObject",
+          "url": {{ (printf "/%s" $logo) | absURL | jsonify }},
+          "width":"32",
+          "height":"32"
+      }
+  },
+  "description": {{ with .Description }}{{ . | jsonify }}{{ else }}{{ .Summary | jsonify }}{{ end }},
+  "wordCount" : {{ .WordCount }},
+  "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": {{ .Permalink | jsonify }}
+  }
+}
+</script>

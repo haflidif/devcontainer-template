@@ -1,23 +1,25 @@
-# Hugo Documentation Site
+# DevContainer Template Documentation
 
-This directory contains the Hugo-based documentation site for the DevContainer Template project.
+This directory contains the Hugo documentation site for the DevContainer Template project.
 
-## Overview
+## Theme
 
-The documentation site is built using:
-- **Hugo** - Static site generator
-- **Docsy Theme** - Documentation-focused theme
-- **GitHub Pages** - Hosting platform
-- **GitHub Actions** - Automated deployment
+The site uses the **Hugo Geekdoc theme**, which provides a clean, professional documentation layout similar to Microsoft's Azure Landing Zones documentation site.
 
 ## Features
 
-- 📚 **Comprehensive Documentation** - Complete guides for all features
-- 🎨 **Modern Design** - Clean, responsive interface with the Docsy theme
-- 🔍 **Search Functionality** - Built-in search across all documentation
-- 📱 **Mobile Responsive** - Optimized for all devices
-- 🚀 **Fast Loading** - Optimized static site generation
-- 🔄 **Auto-Deployment** - Automated publishing to GitHub Pages
+- 🎨 **Modern Design** - Clean, professional appearance with excellent mobile support
+- 🔍 **Search Functionality** - Built-in search with flexsearch
+- 📱 **Responsive Layout** - Works perfectly on desktop and mobile devices  
+- 🌙 **Dark Mode Support** - User preference-based theme switching
+- 📊 **Tabbed Content** - Organized content with tabs and collapsible sections
+- 🔗 **Navigation** - Easy-to-use sidebar navigation with breadcrumbs
+- ✨ **Syntax Highlighting** - Beautiful code blocks with line numbers
+- 📝 **Rich Content** - Support for hints, buttons, icons, and more
+
+## Attribution
+
+The site footer includes proper attribution: "Built with ❤️, GitHub Copilot, architected and ideas by Haflidi Fridthjofsson"
 
 ## Local Development
 
