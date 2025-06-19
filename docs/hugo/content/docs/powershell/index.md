@@ -666,4 +666,4 @@ $params = @{
 }
 ```
 
-For detailed function reference, see the [API Reference](/docs/api/) section. For more information and advanced examples, see the complete module documentation and the [Examples section](/docs/examples/).
+For detailed function reference, see the [API Reference](../api/) section. For more information and advanced examples, see the complete module documentation and the [Examples section](../examples/).
