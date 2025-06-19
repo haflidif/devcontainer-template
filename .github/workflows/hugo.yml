@@ -56,27 +56,14 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
         
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: docs/hugo/package-lock.json
-        
-      - name: Install Node.js dependencies
-        run: |
-          cd docs/hugo
-          npm ci
-        
-      - name: Install Docsy theme
+      - name: Install Hugo theme modules
         run: |
           cd docs/hugo
           # Only initialize if go.mod doesn't exist
           if [ ! -f "go.mod" ]; then
             hugo mod init github.com/haflidif/devcontainer-template
           fi
-          hugo mod get github.com/google/docsy@v0.12.0
-          hugo mod get github.com/google/docsy/dependencies@v0.7.2
+          hugo mod get github.com/thegeeklab/hugo-geekdoc@v0.44.1
           hugo mod tidy
           
       - name: Build with Hugo
