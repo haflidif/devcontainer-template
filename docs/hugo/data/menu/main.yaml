@@ -4,30 +4,15 @@ main:
     ref: /
     icon: gdoc_home
   
+  - name: Documentation
+    ref: /docs
+    icon: gdoc_book
+  
   - name: Getting Started
     ref: /docs/getting-started
     icon: gdoc_rocket
   
-  - name: Configuration
-    ref: /docs/configuration
-    icon: gdoc_settings
-  
-  - name: PowerShell
-    ref: /docs/powershell
-    icon: gdoc_terminal
-  
-  - name: Examples
-    ref: /docs/examples
-    icon: gdoc_code
-  
-  - name: API Reference
-    ref: /docs/api
-    icon: gdoc_book
-  
-  - name: Testing
-    ref: /docs/testing
-    icon: gdoc_test_tube
-  
-  - name: Troubleshooting
-    ref: /docs/troubleshooting
-    icon: gdoc_bug
+  - name: GitHub
+    ref: https://github.com/haflidif/devcontainer-template
+    icon: gdoc_github
+    external: true

@@ -1,23 +1,20 @@
 ---
-title: "Documentation"
-geekdocCollapseSection: true
+title: Documentation
 weight: 10
 ---
 
 # DevContainer Template Documentation
 
-This section contains the complete documentation for the DevContainer Template for Infrastructure as Code.
+Welcome to the comprehensive documentation for the DevContainer Template project.
 
-{{< hint type=note >}}
-New to the template? Start with our [Getting Started Guide](getting-started/) for a step-by-step walkthrough.
-{{< /hint >}}
+## Navigation
 
-## Sections
+Use the menu on the left to explore different sections:
 
-- **[Getting Started](getting-started/)** - Setup and first steps
-- **[Configuration](configuration/)** - Customizing the template
-- **[Testing](testing/)** - Using the modern Pester testing framework
-- **[Examples](examples/)** - Practical examples and use cases
-- **[Module Architecture](powershell/)** - Modular PowerShell components
-- **[Module Reference](api/)** - Complete function reference
-- **[Troubleshooting](troubleshooting/)** - Common issues and solutions
+- **Getting Started** - Quick setup and initial configuration
+- **Configuration** - Detailed configuration options  
+- **PowerShell** - PowerShell module documentation
+- **Examples** - Real-world usage examples
+- **API Reference** - Complete API documentation
+- **Testing** - Testing framework and validation
+- **Troubleshooting** - Common issues and solutions
