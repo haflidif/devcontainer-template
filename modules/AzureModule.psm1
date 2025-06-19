@@ -87,28 +87,65 @@ function Test-AzureStorageContainer {
         
         Write-ColorOutput "🔍 Checking if container '$ContainerName' exists in storage account '$StorageAccountName'..." "Cyan"
         
-        $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
+        # Get storage account keys
+        $keysResult = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColorOutput "❌ Failed to get storage account keys" "Red"
+            throw "Failed to retrieve storage account keys"
+        }
+        
+        $keys = $keysResult | ConvertFrom-Json
+        if (-not $keys -or $keys.Count -eq 0) {
+            throw "No storage account keys found"
+        }
         $storageKey = $keys[0].value
         
-        $container = az storage container show --name $ContainerName --account-name $StorageAccountName --account-key $storageKey --output json 2>$null
-        if ($LASTEXITCODE -eq 0 -and $container) {
-            $containerInfo = $container | ConvertFrom-Json
-            Write-ColorOutput "✅ Container found: $($containerInfo.name)" "Green"
-            return @{
-                Exists = $true
-                Container = $containerInfo
+        # Check container existence with better error handling
+        $containerResult = az storage container show --name $ContainerName --account-name $StorageAccountName --account-key $storageKey --output json 2>$null
+        
+        if ($LASTEXITCODE -eq 0 -and $containerResult -and $containerResult.Trim() -ne "") {
+            try {
+                $containerInfo = $containerResult | ConvertFrom-Json
+                if ($containerInfo -and $containerInfo.name) {
+                    Write-ColorOutput "✅ Container found: $($containerInfo.name)" "Green"
+                    return @{
+                        Exists = $true
+                        Container = $containerInfo
+                    }
+                }
+            }
+            catch {
+                Write-ColorOutput "⚠️  Failed to parse container info, treating as not found" "Yellow"
+            }
+        } else {
+            # Check if this might be a network access issue
+            $errorOutput = az storage container show --name $ContainerName --account-name $StorageAccountName --account-key $storageKey 2>&1
+            if ($errorOutput -match "network|access|firewall|private") {
+                Write-ColorOutput "⚠️  Container check failed - possibly due to network restrictions" "Yellow"
+                Write-ColorOutput "ℹ️  Storage account may have public access disabled or firewall rules" "Gray"
+                return @{
+                    Exists = $null  # Unknown due to network restrictions
+                    Container = $null
+                    NetworkRestricted = $true
+                }
             }
         }
-        else {
-            Write-ColorOutput "⚠️  Container '$ContainerName' not found" "Yellow"
-            return @{
-                Exists = $false
-                Container = $null
-            }
+        
+        Write-ColorOutput "⚠️  Container '$ContainerName' not found" "Yellow"
+        return @{
+            Exists = $false
+            Container = $null
         }
     }
     catch {
-        throw "Failed to check storage container: $($_.Exception.Message)"
+        Write-ColorOutput "⚠️  Failed to check storage container: $($_.Exception.Message)" "Yellow"
+        Write-ColorOutput "ℹ️  This might be due to network access restrictions on the storage account" "Gray"
+        return @{
+            Exists = $null
+            Container = $null
+            NetworkRestricted = $true
+            Error = $_.Exception.Message
+        }
     }
 }
 
@@ -309,28 +346,51 @@ function New-AzureTerraformBackend {
         else {
             Write-ColorOutput "✅ Using existing storage account: $StorageAccountName" "Green"
             $storageAccount = $storageCheck.StorageAccount
+            
+            # Update tags on existing storage account
+            Write-ColorOutput "🏷️  Updating storage account tags..." "Cyan"
+            $null = az storage account update `
+                --name $StorageAccountName `
+                --resource-group $ResourceGroupName `
+                --tags @tags `
+                --output json
+                
+            if ($LASTEXITCODE -eq 0) {
+                Write-ColorOutput "✅ Storage account tags updated" "Green"
+            } else {
+                Write-ColorOutput "⚠️  Failed to update storage account tags" "Yellow"
+            }
         }
         
         # Check/Create Container
         $containerCheck = Test-AzureStorageContainer -StorageAccountName $StorageAccountName -ContainerName $ContainerName -ResourceGroupName $ResourceGroupName -SubscriptionId $SubscriptionId
-          if (-not $containerCheck.Exists) {
+        
+        if ($containerCheck.NetworkRestricted) {
+            Write-ColorOutput "⚠️  Cannot verify container existence due to network restrictions" "Yellow"
+            Write-ColorOutput "ℹ️  Please ensure the '$ContainerName' container exists in your storage account" "Gray"
+            Write-ColorOutput "ℹ️  You can create it manually in the Azure portal if needed" "Gray"
+        }
+        elseif (-not $containerCheck.Exists) {
             Write-ColorOutput "📦 Creating storage container '$ContainerName'..." "Cyan"
             
             $keys = az storage account keys list --account-name $StorageAccountName --resource-group $ResourceGroupName --output json | ConvertFrom-Json
             $storageKey = $keys[0].value
             
-            $null = az storage container create `
+            $containerCreateResult = az storage container create `
                 --name $ContainerName `
                 --account-name $StorageAccountName `
                 --account-key $storageKey `
                 --public-access off `
-                --output json
+                --output json 2>&1
                 
-            if ($LASTEXITCODE -ne 0) {
-                throw "Failed to create storage container"
+            if ($LASTEXITCODE -eq 0) {
+                Write-ColorOutput "✅ Storage container created: $ContainerName" "Green"
+            } else {
+                Write-ColorOutput "⚠️  Failed to create container - possibly due to network restrictions" "Yellow"
+                Write-ColorOutput "ℹ️  Error: $containerCreateResult" "Gray"
+                Write-ColorOutput "ℹ️  You may need to create the '$ContainerName' container manually" "Gray"
+                Write-ColorOutput "ℹ️  Consider temporarily enabling public access or using a private endpoint" "Gray"
             }
-            
-            Write-ColorOutput "✅ Storage container created: $ContainerName" "Green"
         }
         else {
             Write-ColorOutput "✅ Using existing storage container: $ContainerName" "Green"
