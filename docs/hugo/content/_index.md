@@ -13,8 +13,6 @@ This is a modern, comprehensive development container template featuring automat
 **Latest Update:** Modern Hugo documentation with Geekdoc theme ✅
 {{< /hint >}}
 
-# DevContainer Template
-
 A comprehensive, modern development container template featuring:
 
 - **🐳 Multi-Language Support**: Terraform, Bicep, PowerShell, and more

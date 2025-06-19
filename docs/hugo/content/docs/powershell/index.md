@@ -6,8 +6,6 @@ description: >
   Learn about the DevContainer Template's modular PowerShell architecture for advanced automation and project management.
 ---
 
-# DevContainer Template Module Architecture
-
 The DevContainer Template uses a **modular PowerShell architecture** with five specialized modules that work together to provide comprehensive Infrastructure as Code automation.
 
 ## Architecture Overview

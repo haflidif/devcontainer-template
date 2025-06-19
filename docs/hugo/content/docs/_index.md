@@ -4,8 +4,6 @@ geekdocCollapseSection: true
 weight: 10
 ---
 
-# DevContainer Template Documentation
-
 This section contains the complete documentation for the DevContainer Template for Infrastructure as Code.
 
 {{< hint type=note >}}

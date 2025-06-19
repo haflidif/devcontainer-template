@@ -6,8 +6,6 @@ description: >
   Common issues and solutions for the DevContainer template setup and usage.
 ---
 
-# Troubleshooting
-
 This guide covers common issues you might encounter when using the DevContainer template and their solutions.
 
 ## Installation Issues

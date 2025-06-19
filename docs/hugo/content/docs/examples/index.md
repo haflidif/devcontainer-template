@@ -6,8 +6,6 @@ description: >
   Practical examples and use cases for Terraform, Bicep, and PowerShell automation using the modular architecture.
 ---
 
-# Examples and Use Cases
-
 The DevContainer template includes comprehensive examples for common Infrastructure as Code scenarios and automation patterns using the new modular PowerShell architecture.
 
 ## Overview

@@ -6,8 +6,6 @@ description: >
   Comprehensive testing framework using Pester for validation, security scanning, and quality assurance.
 ---
 
-# Testing Framework
-
 The DevContainer template includes a comprehensive testing framework built on Pester 5.0+ with modular test organization and CI/CD integration.
 
 ## Overview

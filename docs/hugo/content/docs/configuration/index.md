@@ -6,8 +6,6 @@ description: >
   Complete configuration guide for customizing the DevContainer template to your needs.
 ---
 
-# Configuration
-
 This guide covers all configuration options available in the DevContainer template.
 
 ## Environment Configuration

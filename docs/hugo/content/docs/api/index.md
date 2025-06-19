@@ -6,8 +6,6 @@ description: >
   Complete function reference for all PowerShell modules in the DevContainer template.
 ---
 
-# API Reference
-
 Complete reference for all functions and cmdlets available in the DevContainer template PowerShell modules.
 
 ## CommonModule Functions

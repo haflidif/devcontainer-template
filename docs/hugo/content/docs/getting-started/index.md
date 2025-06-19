@@ -6,8 +6,6 @@ description: >
   Quick setup guide for the DevContainer template with automated validation and testing.
 ---
 
-# Getting Started
-
 Welcome! This guide will help you set up the DevContainer template quickly and efficiently.
 
 ## Prerequisites
