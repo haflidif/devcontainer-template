@@ -1,80 +1,118 @@
 baseURL = "https://haflidif.github.io/devcontainer-template"
 languageCode = "en-us"
-title = "DevContainer Template for Infrastructure as Code"
+title = "DevContainer Template Documentation"
+description = "Documentation site for the DevContainer Template."
+theme = "hugo-geekdoc"
 
-# Build configuration to handle deprecation warnings
-logLevel = "warn"
-buildFuture = true
-buildExpired = true
-ignoreErrors = ["error-missing-instagram-accesstoken"]
-
-# Required for Geekdoc theme
+# Required to get well formatted code blocks
 pygmentsUseClasses = true
 pygmentsCodeFences = true
 disablePathToLower = true
 enableGitInfo = true
+
+# Required if you want to render robots.txt template
 enableRobotsTXT = true
-defaultContentLanguage = "en"
 
-# Hugo module configuration for Geekdoc theme
-[module]
-  [[module.imports]]
-    path = "github.com/thegeeklab/hugo-geekdoc"
-
-# Site description and metadata
-[params]
-  version = "v2.0"
-  description = "A comprehensive DevContainer template for Terraform and Bicep development with modern testing, automation, and documentation."
-  github_repo = "https://github.com/haflidif/devcontainer-template"
-  github_branch = "main"
-  
-  # Edit page settings
-  geekdocEditPage = true
-  geekdocRepo = "https://github.com/haflidif/devcontainer-template"
-  geekdocBranch = "main"
-  
-  # Search settings
-  geekdocSearch = true
-  
-  # Footer settings
-  geekdocLegalNotice = ""
-  geekdocPrivacyPolicy = ""
-  
-  # Theme settings
-  geekdocMenuBundle = false
-  geekdocNextPrev = true
-  geekdocBackToTop = true
-  
-  # Social media settings (replaces deprecated .Site.Social)
-  social = []
-
-# Menu configuration
-[[menu.main]]
-  name = "GitHub"
-  url = "https://github.com/haflidif/devcontainer-template"
-  weight = 50
-
-# Markup configuration for code highlighting
 [markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-  [markup.highlight]
-    style = "github"
-    lineNos = true
-    lineNumbersInTable = true
-    noClasses = false
-    anchorLineNos = false
-    codeFences = true
-    guessSyntax = false
-    hl_Lines = ""
-    hl_inline = false
-    lineAnchors = ""
-    tabWidth = 4
+[markup.goldmark.renderer]
+# Needed for mermaid shortcode
+unsafe = true
+[markup.tableOfContents]
+startLevel = 1
+endLevel = 9
 
-# Language settings
-[languages]
-  [languages.en]
-    languageName = "English"
-    weight = 1
-    title = "DevContainer Template Documentation"
+[taxonomies]
+tag = "tags"
+
+[params]
+# (Optional, default 6) Set how many table of contents levels to be showed on page.
+# Use false to hide ToC, note that 0 will default to 6 (https://gohugo.io/functions/default/)
+# You can also specify this parameter per page in front matter.
+geekdocToC = 2
+
+# (Optional, default static/brand.svg) Set the path to a logo for the Geekdoc
+# relative to your 'static/' folder.
+geekdocLogo = "brand.svg"
+
+# (Optional, default false) Render menu from data file in 'data/menu/main.yaml'.
+# See also https://geekdocs.de/usage/menus/#bundle-menu.
+geekdocMenuBundle = false
+
+# (Optional, default false) Collapse all menu entries, can not be overwritten
+# per page if enabled. Can be enabled per page via 'geekdocCollapseSection'.
+geekdocCollapseAllSections = false
+
+# Default align left
+geekdocAlign = "left"
+
+# Default include nav
+geekdockNav = true
+
+# (Optional, default true) Show page navigation links at the bottom of each
+# docs page (bundle menu only).
+geekdocNextPrev = true
+
+# (Optional, default true) Show a breadcrumb navigation bar at the top of each docs page.
+# You can also specify this parameter per page in front matter.
+geekdocBreadcrumb = true
+
+# (Optional, default none) Set source repository location. Used for 'Edit page' links.
+# You can also specify this parameter per page in front matter.
+geekdocRepo = "https://github.com/haflidif/devcontainer-template"
+
+# (Optional, default none) Enable 'Edit page' links. Requires 'geekdocRepo' param
+# and the path must point to the parent directory of the 'content' folder.
+# You can also specify this parameter per page in front matter.
+geekdocEditPath = "edit/main/docs/hugo"
+
+# (Optional, default true) Enables search function with flexsearch.
+# Index is built on the fly and might slow down your website.
+geekdocSearch = true
+
+# (Optional, default false) Display search results with the parent folder as prefix. This
+# option allows you to distinguish between files with the same name in different folders.
+# NOTE: This parameter only applies when 'geekdocSearch = true'.
+geekdocSearchShowParent = true
+
+# (Optional, default true) Add an anchor link to headlines.
+geekdocAnchor = true
+
+# (Optional, default true) Copy anchor url to clipboard on click.
+geekdocAnchorCopy = true
+
+# (Optional, default true) Enable or disable image lazy loading for images rendered
+# by the 'img' shortcode.
+geekdocImageLazyLoading = true
+
+# (Optional, default false) Set HTMl <base> to .Site.BaseURL if enabled. It might be required
+# if a subdirectory is used within Hugos BaseURL.
+# See https://developer.mozilla.org/de/docs/Web/HTML/Element/base.
+geekdocOverwriteHTMLBase = false
+
+# (Optional, default true) Enable or disable the JavaScript based color theme toggle switch. The CSS based
+# user preference mode still works.
+geekdocDarkModeToggle = true
+
+# (Optional, default false) Auto-decrease brightness of images and add a slightly grayscale to avoid
+# bright spots while using the dark mode.
+geekdocDarkModeDim = false
+
+# (Optional, default false) Enforce code blocks to always use the dark color theme.
+geekdocDarkModeCode = false
+
+# (Optional, default true) Display a "Back to top" link in the site footer.
+geekdocBackToTop = true
+
+# (Optional, default false) Enable or disable adding tags for post pages automatically to the navigation sidebar.
+geekdocTagsToMenu = false
+
+# (Optional, default 'title') Configure how to sort file-tree menu entries. Possible options are 'title', 'linktitle',
+# 'date', 'publishdate', 'expirydate' or 'lastmod'. Every option can be used with a reverse modifier as well
+# e.g. 'title_reverse'.
+geekdocFileTreeSortBy = "title"
+
+# (Optional, default none) Adds a "Content licensed under <license>" line to the footer.
+# Could be used if you want to define a default license for your content.
+[params.geekdocContentLicense]
+name = "MIT License"
+link = "https://github.com/haflidif/devcontainer-template?tab=MIT-1-ov-file#readme"

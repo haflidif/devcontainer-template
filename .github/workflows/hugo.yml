@@ -32,7 +32,7 @@ defaults:
     shell: bash
 
 env:
-  HUGO_VERSION: 0.136.5
+  HUGO_VERSION: 0.147.8
 
 jobs:
   # Build job
@@ -55,19 +55,9 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
         
-      - name: Install Hugo theme modules
-        run: |
-          cd docs/hugo
-          # Only initialize if go.mod doesn't exist
-          if [ ! -f "go.mod" ]; then
-            hugo mod init github.com/haflidif/devcontainer-template
-          fi
-          hugo mod get github.com/thegeeklab/hugo-geekdoc@v0.44.1
-          hugo mod tidy
-          
       - name: Build with Hugo
         env:
-          # For maximum backward compatibility with Hugo modules
+          # For maximum backward compatibility with Hugo
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
           TZ: America/Los_Angeles

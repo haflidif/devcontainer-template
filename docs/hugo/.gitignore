@@ -1,0 +1,23 @@
+# Hugo build output
+/public/
+/resources/_gen/
+/hugo_stats.json
+
+# Hugo development files
+.hugo_build.lock
+
+# Node modules (if using npm for anything)
+node_modules/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+
+# Go modules (since we removed Hugo modules)
+go.mod
+go.sum
