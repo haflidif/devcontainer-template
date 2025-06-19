@@ -31,26 +31,25 @@ defaults:
   run:
     shell: bash
 
+env:
+  HUGO_VERSION: 0.136.5
+
 jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    env:
-      HUGO_VERSION: 0.147.8
     steps:
-      - name: Install Hugo CLI
-        run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
-          && sudo dpkg -i ${{ runner.temp }}/hugo.deb          
-      
-      - name: Install Dart Sass
-        run: sudo snap install dart-sass
-        
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
           
       - name: Setup Pages
         id: pages
@@ -71,11 +70,13 @@ jobs:
           # For maximum backward compatibility with Hugo modules
           HUGO_ENVIRONMENT: production
           HUGO_ENV: production
+          TZ: America/Los_Angeles
         run: |
           cd docs/hugo
           hugo \
             --gc \
             --minify \
+            --logLevel warn \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
             
       - name: Upload artifact
