@@ -63,3 +63,13 @@ Once you've completed the setup:
 - Explore technology-specific examples
 - Set up CI/CD pipelines with configuration templates
 - Customize the DevContainer for your project needs
+
+---
+
+## 👥 Credits
+
+**Created with ❤️ and in companionship with GitHub Copilot**
+
+**Ideas & Architecture**: [Haflidi Fridthjofsson](https://github.com/haflidif)
+
+*This project leverages AI-assisted development to accelerate Azure DevContainer template creation and management.*
