@@ -12,6 +12,30 @@ main:
     ref: /docs/getting-started
     icon: gdoc_rocket
   
+  - name: Configuration
+    ref: /docs/configuration
+    icon: gdoc_settings
+  
+  - name: Testing
+    ref: /docs/testing
+    icon: gdoc_check
+  
+  - name: Examples
+    ref: /docs/examples
+    icon: gdoc_code
+  
+  - name: PowerShell
+    ref: /docs/powershell
+    icon: gdoc_powershell
+  
+  - name: API Reference
+    ref: /docs/api
+    icon: gdoc_library
+  
+  - name: Troubleshooting
+    ref: /docs/troubleshooting
+    icon: gdoc_support
+  
   - name: GitHub
     ref: https://github.com/haflidif/devcontainer-template
     icon: gdoc_github
