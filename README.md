@@ -6,6 +6,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/haflidif/devcontainer-template.svg)](https://github.com/haflidif/devcontainer-template/stargazers)
 [![Hugo](https://img.shields.io/badge/Hugo-Extended-FF4088.svg)](https://gohugo.io/)
 [![Geekdoc Theme](https://img.shields.io/badge/Theme-Geekdoc-green.svg)](https://geekdocs.de/)
+[![Pester Tests](https://img.shields.io/badge/Pester-38%20Tests-brightgreen.svg)](./tests/)
 
 A comprehensive DevContainer template for Azure development with integrated tooling, documentation, and automation scripts.
 
