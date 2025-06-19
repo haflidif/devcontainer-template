@@ -47,6 +47,17 @@ function Test-AzureStorageAccount {
         [string]$SubscriptionId
     )
     
+    # Validate required parameters
+    if ([string]::IsNullOrWhiteSpace($StorageAccountName)) {
+        throw "StorageAccountName parameter is required and cannot be empty"
+    }
+    if ([string]::IsNullOrWhiteSpace($ResourceGroupName)) {
+        throw "ResourceGroupName parameter is required and cannot be empty"
+    }
+    if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
+        throw "SubscriptionId parameter is required and cannot be empty"
+    }
+    
     try {
         $null = Test-AzureAuthentication -SubscriptionId $SubscriptionId
         
@@ -81,6 +92,20 @@ function Test-AzureStorageContainer {
         [string]$ResourceGroupName,
         [string]$SubscriptionId
     )
+    
+    # Validate required parameters
+    if ([string]::IsNullOrWhiteSpace($StorageAccountName)) {
+        throw "StorageAccountName parameter is required and cannot be empty"
+    }
+    if ([string]::IsNullOrWhiteSpace($ContainerName)) {
+        throw "ContainerName parameter is required and cannot be empty"
+    }
+    if ([string]::IsNullOrWhiteSpace($ResourceGroupName)) {
+        throw "ResourceGroupName parameter is required and cannot be empty"
+    }
+    if ([string]::IsNullOrWhiteSpace($SubscriptionId)) {
+        throw "SubscriptionId parameter is required and cannot be empty"
+    }
     
     try {
         $null = Test-AzureAuthentication -SubscriptionId $SubscriptionId
