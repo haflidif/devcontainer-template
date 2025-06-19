@@ -265,13 +265,12 @@ function New-AzureTerraformBackend {
             
             # Build tags for the storage account
             $tags = @()
-            if ($DisplayName) { $tags += "DisplayName='$DisplayName'" }
-            if ($ProjectName) { $tags += "ProjectName='$ProjectName'" }
-            if ($Environment) { $tags += "Environment='$Environment'" }
-            if ($Purpose) { $tags += "Purpose='$Purpose'" }
-            $tags += "CreatedBy='DevContainer-Template'"
-            $tags += "CreatedDate='$(Get-Date -Format 'yyyy-MM-dd')'"
-            $tagsString = $tags -join " "
+            if ($DisplayName) { $tags += "DisplayName=$DisplayName" }
+            if ($ProjectName) { $tags += "ProjectName=$ProjectName" }
+            if ($Environment) { $tags += "Environment=$Environment" }
+            if ($Purpose) { $tags += "Purpose=$Purpose" }
+            $tags += "CreatedBy=DevContainer-Template"
+            $tags += "CreatedDate=$(Get-Date -Format 'yyyy-MM-dd')"
             
             $storageResult = az storage account create `
                 --name $StorageAccountName `
@@ -284,7 +283,7 @@ function New-AzureTerraformBackend {
                 --https-only true `
                 --min-tls-version TLS1_2 `
                 --allow-blob-public-access false `
-                --tags $tagsString `
+                --tags @tags `
                 --output json
                 
             if ($LASTEXITCODE -ne 0) {
