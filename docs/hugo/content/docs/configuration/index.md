@@ -315,10 +315,10 @@ docker version
 docker info
 ```
 
-For more troubleshooting help, see the [Troubleshooting Guide](/docs/troubleshooting/).
+For more troubleshooting help, see the [Troubleshooting Guide](../troubleshooting/).
 
 ## Next Steps
 
-- Learn about [Testing Framework](/docs/testing/)
-- Explore [Examples](/docs/examples/)
-- Check [PowerShell Modules](/docs/powershell/)
+- Learn about [Testing Framework](../testing/)
+- Explore [Examples](../examples/)
+- Check [PowerShell Modules](../powershell/)

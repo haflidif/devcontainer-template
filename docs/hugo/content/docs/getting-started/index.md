@@ -135,10 +135,10 @@ If you prefer manual configuration:
 
 After setup, explore these areas:
 
-- **[Configuration Guide](/docs/configuration/)** - Customize the template for your needs
-- **[Testing Framework](/docs/testing/)** - Learn about the Pester testing system
-- **[Examples](/docs/examples/)** - Review practical implementation examples
-- **[Module Reference](/docs/api/)** - Complete function documentation
+- **[Configuration Guide](../configuration/)** - Customize the template for your needs
+- **[Testing Framework](../testing/)** - Learn about the Pester testing system
+- **[Examples](../examples/)** - Review practical implementation examples
+- **[Module Reference](../api/)** - Complete function documentation
 
 ## Verification
 
@@ -207,13 +207,13 @@ If you encounter issues during setup:
    Install-Module -Name Pester -Force -SkipPublisherCheck
    ```
 
-For more detailed troubleshooting, see the [Troubleshooting Guide](/docs/troubleshooting/).
+For more detailed troubleshooting, see the [Troubleshooting Guide](../troubleshooting/).
 
 ## What's Next?
 
 Now that your DevContainer is set up:
 
-- Explore the **[configuration options](/docs/configuration/)**
-- Learn about **[testing workflows](/docs/testing/)**
-- Check out **[practical examples](/docs/examples/)**
-- Set up **[automation with PowerShell](/docs/powershell/)**
+- Explore the **[configuration options](../configuration/)**
+- Learn about **[testing workflows](../testing/)**
+- Check out **[practical examples](../examples/)**
+- Set up **[automation with PowerShell](../powershell/)**
