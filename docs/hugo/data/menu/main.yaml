@@ -17,9 +17,11 @@ main:
   
   - name: Module Architecture
     ref: /docs/powershell
-  
   - name: API Reference
     ref: /docs/api
   
   - name: Troubleshooting
     ref: /docs/troubleshooting
+
+  - name: Project Journey
+    ref: /docs/project-journey
