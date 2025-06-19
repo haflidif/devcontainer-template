@@ -1,68 +1,77 @@
-# Getting Started Examples
+# DevContainer Template
 
-This directory contains essential guides and documentation to help new users get started with the DevContainer Template.
+[![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://haflidif.github.io/devcontainer-template/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![GitHub Issues](https://img.shields.io/github/issues/haflidif/devcontainer-template.svg)](https://github.com/haflidif/devcontainer-template/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/haflidif/devcontainer-template.svg)](https://github.com/haflidif/devcontainer-template/stargazers)
+[![Hugo](https://img.shields.io/badge/Hugo-Extended-FF4088.svg)](https://gohugo.io/)
+[![Geekdoc Theme](https://img.shields.io/badge/Theme-Geekdoc-green.svg)](https://geekdocs.de/)
 
-## 📋 Contents
+A comprehensive DevContainer template for Azure development with integrated tooling, documentation, and automation scripts.
 
-### AVM-DEVELOPMENT-GUIDE.md
-Comprehensive guide for Azure Verified Modules (AVM) development covering:
-- Development environment setup
-- Best practices and guidelines
-- Module structure and standards
-- Testing and validation procedures
+## 📖 Documentation
 
-## 🚀 Quick Start Guide
+Visit our comprehensive documentation site: **[https://haflidif.github.io/devcontainer-template/](https://haflidif.github.io/devcontainer-template/)**
 
-### 1. Initial Setup
+## 🚀 Quick Start
+
+### 1. Clone and Initialize
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/haflidif/devcontainer-template.git
 cd devcontainer-template
 
 # Initialize the DevContainer
 ./Initialize-DevContainer.ps1
 ```
 
-### 2. Choose Your Technology Stack
-- **Terraform**: See [../terraform/](../terraform/) for examples
-- **Bicep**: See [../bicep/](../bicep/) for templates
-- **ARM Templates**: See [../arm/](../arm/) for JSON templates
+### 2. Open in VS Code
+```bash
+# Open in VS Code with DevContainer
+code .
+# Then reopen in container when prompted
+```
 
-### 3. Configure Your Environment
-1. Copy `.devcontainer/devcontainer.env.example` to `.devcontainer/devcontainer.env`
-2. Update the environment variables for your Azure subscription
-3. Start the DevContainer in VS Code
+### 3. Explore Examples
+- **📚 [Documentation](https://haflidif.github.io/devcontainer-template/)** - Complete guides and reference
+- **🛠️ [Terraform Examples](./examples/terraform/)** - Infrastructure as Code templates
+- **🔧 [Bicep Examples](./examples/bicep/)** - Azure Resource Manager templates  
+- **💻 [PowerShell Scripts](./examples/powershell/)** - Automation and tooling
+- **⚙️ [Configuration](./examples/configuration/)** - Setup and customization
 
-### 4. Explore PowerShell Automation
-- Review [../powershell/](../powershell/) examples
-- Learn backend management with the DevContainer Template modules
+## 🎯 Features
 
-## 🔧 Prerequisites
+- **🐳 DevContainer Ready**: Pre-configured development environment
+- **☁️ Azure Focused**: Optimized for Azure development workflows
+- **🛠️ Multi-Tool Support**: Terraform, Bicep, ARM Templates, PowerShell
+- **📖 Rich Documentation**: Hugo-powered documentation site
+- **🔄 CI/CD Ready**: GitHub Actions workflows included
+- **🧪 Testing Framework**: Automated validation and testing
 
-- **VS Code** with Dev Containers extension
-- **Docker Desktop** running
+## � Prerequisites
+
+- **VS Code** with [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- **Docker Desktop** installed and running
 - **Azure Subscription** (for cloud deployments)
-- **PowerShell 5.1+** (for automation scripts)
+- **Git** for version control
 
-## 📚 Learning Path
+## 🏗️ Project Structure
 
-1. **Start Here**: Read `AVM-DEVELOPMENT-GUIDE.md`
-2. **Configuration**: Review [../configuration/](../configuration/) settings
-3. **Automation**: Explore [../powershell/](../powershell/) scripts
-4. **Implementation**: Choose from [../terraform/](../terraform/), [../bicep/](../bicep/), or [../arm/](../arm/)
-
-## 🆘 Need Help?
-
-- Check [../docs/](../docs/) for detailed documentation
-- Run [../tests/Validate-DevContainer.ps1](../tests/Validate-DevContainer.ps1) to verify your setup
-- Review the main [README.md](../../README.md) for troubleshooting
-
-## 🔗 Next Steps
-
-Once you've completed the setup:
-- Explore technology-specific examples
-- Set up CI/CD pipelines with configuration templates
-- Customize the DevContainer for your project needs
+```
+devcontainer-template/
+├── .devcontainer/          # DevContainer configuration
+├── .github/                # GitHub Actions workflows  
+├── docs/                   # Hugo documentation site
+├── examples/               # Usage examples and templates
+│   ├── terraform/          # Terraform IaC examples
+│   ├── bicep/             # Bicep template examples
+│   ├── arm/               # ARM template examples
+│   ├── powershell/        # PowerShell automation scripts
+│   └── configuration/     # Configuration examples
+├── modules/               # Reusable modules
+├── tests/                 # Testing and validation
+└── README.md             # This file
+```
 
 ---
 
