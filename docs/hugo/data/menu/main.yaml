@@ -1,9 +1,5 @@
 ---
 main:
-  - name: Home
-    ref: /
-    icon: gdoc_home
-  
   - name: Documentation
     ref: /docs
     icon: gdoc_book
@@ -35,8 +31,3 @@ main:
   - name: Troubleshooting
     ref: /docs/troubleshooting
     icon: gdoc_support
-  
-  - name: GitHub
-    ref: https://github.com/haflidif/devcontainer-template
-    icon: gdoc_github
-    external: true
