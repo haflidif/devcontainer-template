@@ -48,6 +48,43 @@ code .
 - **📖 Rich Documentation**: Hugo-powered documentation site
 - **🔄 CI/CD Ready**: GitHub Actions workflows included
 - **🧪 Testing Framework**: Automated validation and testing
+- **⚡ Flexible Backends**: Seamless local and Azure Terraform state management
+- **🤖 Smart Automation**: Zero-touch backend infrastructure provisioning
+
+## 🆕 Latest Enhancements (June 2025)
+
+### **Modernized Backend Support**
+- **🔄 Flexible Backend Types**: Easy switching between `local` and `azure` backends
+- **☁️ Automatic Azure Setup**: Zero-configuration Azure backend infrastructure creation
+- **📁 Smart File Generation**: Proper `main.tf` and `backend.tfvars` configuration
+- **🔐 Conditional Authentication**: Azure credentials only required when needed
+- **⚡ Improved User Experience**: Single-command setup for any scenario
+
+```powershell
+# Local development - no Azure credentials needed
+.\Initialize-DevContainer.ps1 -ProjectName "my-app" -BackendType local
+
+# Azure production - automatic cloud infrastructure
+.\Initialize-DevContainer.ps1 -ProjectName "my-app" -BackendType azure `
+    -TenantId "your-tenant" -SubscriptionId "your-subscription"
+```
+
+## 📋 Project Documentation
+
+Explore the complete evolution and features of this project:
+
+### **📖 [Complete Documentation Site](https://haflidif.github.io/devcontainer-template/)**
+- **[Getting Started](https://haflidif.github.io/devcontainer-template/docs/getting-started/)** - Quick setup with backend selection
+- **[Backend Configuration](https://haflidif.github.io/devcontainer-template/docs/configuration/backend/)** - Flexible local/Azure backends  
+- **[Project Journey](https://haflidif.github.io/devcontainer-template/docs/project-journey/)** - Evolution from concept to enterprise platform
+- **[Latest Release (v2.0.0)](https://haflidif.github.io/devcontainer-template/docs/releases/v2-0-0/)** - Backend modernization features
+- **[Changelog](https://haflidif.github.io/devcontainer-template/docs/changelog/)** - Complete version history
+
+### **Key Documentation Highlights:**
+- **Phase 1**: Foundation and basic DevContainer setup
+- **Phase 2**: Modular architecture and testing framework  
+- **Phase 3**: Hugo documentation modernization
+- **Phase 4**: Backend modernization and flexible infrastructure support ⭐ *Latest*
 
 ## � Prerequisites
 

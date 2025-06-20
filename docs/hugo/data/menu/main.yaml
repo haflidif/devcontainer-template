@@ -23,5 +23,11 @@ main:
   - name: Troubleshooting
     ref: /docs/troubleshooting
 
+  - name: Releases
+    ref: /docs/releases
+
+  - name: Changelog
+    ref: /docs/changelog
+
   - name: Project Journey
     ref: /docs/project-journey

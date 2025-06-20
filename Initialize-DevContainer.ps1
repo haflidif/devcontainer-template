@@ -33,6 +33,9 @@
 .PARAMETER ProjectType
     Type of IaC project: 'terraform', 'bicep', or 'both'. Defaults to 'terraform'.
 
+.PARAMETER BackendType
+    Terraform backend type: 'local' for local state file, 'azure' for Azure Storage. Defaults to 'azure'.
+
 .PARAMETER IncludeExamples
     Include example Terraform/Bicep files in the project.
 
@@ -86,7 +89,10 @@ param(
     [string]$Environment = "dev",
     [string]$Location = "eastus",
     [ValidateSet('terraform', 'bicep', 'both')]
-    [string]$ProjectType = "terraform",    [switch]$IncludeExamples,
+    [string]$ProjectType = "terraform",
+    [ValidateSet('local', 'azure')]
+    [string]$BackendType = "azure",
+    [switch]$IncludeExamples,
     [string]$TemplateSource = $PSScriptRoot,
     [switch]$Force,
     [switch]$Interactive,
@@ -169,9 +175,16 @@ function Show-NextSteps {
     
     if ($BackendInfo) {
         Write-ColorOutput "`n🗄️  Terraform Backend:" "Yellow"
-        Write-ColorOutput "   Storage Account: $($BackendInfo.StorageAccount)" "Gray"
-        Write-ColorOutput "   Resource Group: $($BackendInfo.ResourceGroup)" "Gray"
-        Write-ColorOutput "   Container: $($BackendInfo.Container)" "Gray"
+        if ($BackendInfo.Type -eq "local") {
+            Write-ColorOutput "   Type: Local Backend" "Gray"
+            Write-ColorOutput "   State File: $($BackendInfo.Configuration.path)" "Gray"
+            Write-ColorOutput "   Location: Project Directory" "Gray"
+        } else {
+            # Azure backend (legacy format)
+            Write-ColorOutput "   Storage Account: $($BackendInfo.StorageAccount)" "Gray"
+            Write-ColorOutput "   Resource Group: $($BackendInfo.ResourceGroup)" "Gray"
+            Write-ColorOutput "   Container: $($BackendInfo.Container)" "Gray"
+        }
     }
     
     Write-ColorOutput "`n🚀 Next Steps:" "Yellow"
@@ -294,11 +307,14 @@ try {
     if (-not ($WhatIf -or $DryRun)) {
         $validationErrors = @()
         
-        if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
-            $validationErrors += "Valid Azure Tenant ID is required"
-        }
-        if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
-            $validationErrors += "Valid Azure Subscription ID is required"
+        # Only require Azure parameters for Azure backends
+        if ($BackendType -eq "azure" -or $ProjectType -eq "bicep") {
+            if (-not $TenantId -or -not (Test-IsGuid $TenantId)) {
+                $validationErrors += "Valid Azure Tenant ID is required for Azure projects"
+            }
+            if (-not $SubscriptionId -or -not (Test-IsGuid $SubscriptionId)) {
+                $validationErrors += "Valid Azure Subscription ID is required for Azure projects"
+            }
         }
         
         if ($validationErrors.Count -gt 0) {
@@ -330,12 +346,16 @@ try {
     
     # Interactive mode handling
     if ($Interactive) {
-        if (-not $TenantId) {
-            $TenantId = Get-InteractiveInput "Azure Tenant ID (GUID)"
+        # Only prompt for Azure credentials if using Azure backend or Bicep
+        if ($BackendType -eq "azure" -or $ProjectType -eq "bicep") {
+            if (-not $TenantId) {
+                $TenantId = Get-InteractiveInput "Azure Tenant ID (GUID)"
+            }
+            if (-not $SubscriptionId) {
+                $SubscriptionId = Get-InteractiveInput "Azure Subscription ID (GUID)"
+            }
         }
-        if (-not $SubscriptionId) {
-            $SubscriptionId = Get-InteractiveInput "Azure Subscription ID (GUID)"
-        }
+        
         if (-not $ProjectName) {
             $ProjectName = Get-InteractiveInput "Project Name" (Split-Path $ProjectPath -Leaf)
         }
@@ -373,9 +393,25 @@ try {
     # Handle Terraform backend management
     $backendInfo = $null
     if ($ProjectType -in @('terraform', 'both')) {
-        # Set default backend configuration
-        $backendSubId = if ($BackendSubscriptionId) { $BackendSubscriptionId } else { $SubscriptionId }
-        $backendRG = if ($BackendResourceGroup) { $BackendResourceGroup } else { "$ProjectName-tfstate-rg" }
+        Write-ColorOutput "`n🗄️  Configuring Terraform Backend: $BackendType" "Cyan"
+        
+        if ($BackendType -eq "local") {
+            # Local backend configuration
+            $backendInfo = @{
+                Type = "local"
+                DisplayName = "Local Backend"
+                Configuration = @{
+                    path = "terraform.tfstate"
+                }
+            }
+            Write-ColorOutput "✅ Local backend configured - state file: terraform.tfstate" "Green"
+            Write-ColorOutput "💡 Terraform state will be stored locally in the project directory" "Yellow"
+        }
+        elseif ($BackendType -eq "azure") {
+            # Azure Storage backend configuration (existing logic)
+            # Set default backend configuration
+            $backendSubId = if ($BackendSubscriptionId) { $BackendSubscriptionId } else { $SubscriptionId }
+            $backendRG = if ($BackendResourceGroup) { $BackendResourceGroup } else { "$ProjectName-tfstate-rg" }
         
         # Generate proper storage account name with constraints and uniqueness
         if ($BackendStorageAccount) {
@@ -409,8 +445,8 @@ try {
             $ValidateBackend = $backendConfig.Action -eq "validate"
         }
         
-        Write-ColorOutput "`n🏗️  Managing Terraform Backend Configuration" "Cyan"
-        Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Cyan"
+            Write-ColorOutput "`n🏗️  Managing Azure Terraform Backend Configuration" "Cyan"
+            Write-ColorOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" "Cyan"
         
         # Display backend configuration
         Write-ColorOutput "📋 Backend Configuration:" "White"
@@ -459,7 +495,7 @@ try {
             }
         }
         else {
-            # Default: Try to validate, but don't fail if it doesn't exist
+            # Default: Try to validate, if it doesn't exist, create it automatically
             Write-ColorOutput "`n🔍 Checking Terraform backend..." "Yellow"
             $backendValidation = Test-TerraformBackend -StorageAccountName $backendSA -ResourceGroupName $backendRG -ContainerName $backendContainer -SubscriptionId $backendSubId
             
@@ -473,18 +509,40 @@ try {
                 }
             }
             else {
-                Write-ColorOutput "⚠️  Terraform backend not found or invalid" "Yellow"
-                Write-ColorOutput "💡 Use -CreateBackend to create backend infrastructure" "Yellow"
-                Write-ColorOutput "💡 Use -ValidateBackend to validate existing infrastructure" "Yellow"
-                $backendInfo = @{
-                    StorageAccount = $backendSA
-                    ResourceGroup = $backendRG
-                    Container = $backendContainer
-                    SubscriptionId = $backendSubId
+                Write-ColorOutput "⚠️ Terraform backend not found - creating automatically..." "Yellow"
+                Write-ColorOutput "`n� Creating Terraform backend infrastructure..." "Yellow"
+                $backendInfo = New-AzureTerraformBackend `
+                    -StorageAccountName $backendSA `
+                    -ResourceGroupName $backendRG `
+                    -ContainerName $backendContainer `
+                    -Location $Location `
+                    -SubscriptionId $backendSubId `
+                    -CreateResourceGroup:$true `
+                    -DisplayName $storageAccountInfo.DisplayName `
+                    -ProjectName $storageAccountInfo.ProjectName `
+                    -Environment $storageAccountInfo.Environment `
+                    -Purpose $storageAccountInfo.Purpose
+                Write-ColorOutput "✅ Terraform backend infrastructure created successfully!" "Green"
+                
+                # Create backend.tfvars file right after backend creation
+                if ($IncludeExamples) {
+                    $backendTfvarsPath = Join-Path $projectPath "backend.tfvars"
+                    $backendTfvarsContent = @"
+# Terraform Backend Configuration
+# Use with: terraform init -backend-config=backend.tfvars
+
+resource_group_name  = "$backendRG"
+storage_account_name = "$backendSA"
+container_name       = "$backendContainer"
+key                  = "$Environment.terraform.tfstate"
+"@
+                    Set-Content -Path $backendTfvarsPath -Value $backendTfvarsContent -Encoding UTF8
+                    Write-ColorOutput "✅ Created backend.tfvars with backend configuration" "Green"
                 }
             }
         }
-    }
+        } # End of elseif ($BackendType -eq "azure")
+    } # End of if ($ProjectType -in @('terraform', 'both'))
     
     # Create environment configuration
     $backendConfig = if ($backendInfo) {
@@ -501,6 +559,50 @@ try {
     # Add example files if requested
     if ($IncludeExamples) {
         $null = Add-ExampleFiles -ProjectPath $projectPath -ProjectType $ProjectType -TemplateSource $TemplateSource
+        
+        # Configure Terraform backend files based on backend type
+        if ($ProjectType -in @('terraform', 'both') -and $backendInfo) {
+            Write-ColorOutput "`n🔧 Configuring Terraform backend files..." "Yellow"
+            
+            $mainTfPath = Join-Path $projectPath "main.tf"
+            if (Test-Path $mainTfPath) {
+                $mainTfContent = Get-Content $mainTfPath -Raw
+                
+                if ($BackendType -eq "local") {
+                    # For local backend: uncomment local backend block
+                    $mainTfContent = $mainTfContent -replace '(\s*)# backend "local" {}', '$1backend "local" {}'
+                    # Ensure azurerm backend stays commented
+                    $mainTfContent = $mainTfContent -replace '(\s*)backend "azurerm" {}', '$1# backend "azurerm" {}'
+                    
+                    Write-ColorOutput "✅ Configured main.tf for local backend" "Green"
+                }
+                elseif ($BackendType -eq "azure") {
+                    # For Azure backend: uncomment azurerm backend block (empty)
+                    $mainTfContent = $mainTfContent -replace '(\s*)# backend "azurerm" {}', '$1backend "azurerm" {}'
+                    # Ensure local backend stays commented  
+                    $mainTfContent = $mainTfContent -replace '(\s*)backend "local" {}', '$1# backend "local" {}'
+                    
+                    # Create backend.tfvars file for Azure backend
+                    $backendTfvarsPath = Join-Path $projectPath "backend.tfvars"
+                    $backendTfvarsContent = @"
+# Terraform Backend Configuration
+# Use with: terraform init -backend-config=backend.tfvars
+
+resource_group_name  = "$($backendInfo.ResourceGroup)"
+storage_account_name = "$($backendInfo.StorageAccount)"
+container_name       = "$($backendInfo.Container)"
+key                  = "$Environment.terraform.tfstate"
+"@
+                    Set-Content -Path $backendTfvarsPath -Value $backendTfvarsContent -Encoding UTF8
+                    
+                    Write-ColorOutput "✅ Configured main.tf for Azure backend" "Green"
+                    Write-ColorOutput "✅ Created backend.tfvars with backend configuration" "Green"
+                }
+                
+                # Write the updated main.tf content
+                Set-Content -Path $mainTfPath -Value $mainTfContent -Encoding UTF8
+            }
+        }
     }
     
     # Show next steps

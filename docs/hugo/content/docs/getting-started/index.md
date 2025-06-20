@@ -29,20 +29,46 @@ git clone https://github.com/haflidif/devcontainer-template.git
 cd devcontainer-template
 ```
 
-### 2. Initialize with Automation
+### 2. Choose Your Backend Type
 
-Run the initialization script with your Azure details:
+**🆕 Enhanced Backend Support**: Choose between local development or Azure production backends.
+
+#### **Option A: Local Development Backend** ⚡ *Fastest Setup*
+
+Perfect for development, testing, and learning:
+
+```powershell
+.\Initialize-DevContainer.ps1 -ProjectName "my-project" `
+                             -BackendType "local" `
+                             -IncludeExamples
+```
+
+**Features:**
+- ✅ No Azure credentials required
+- ✅ Instant setup (local state storage)
+- ✅ Perfect for development and testing
+- ✅ Works completely offline
+
+#### **Option B: Azure Production Backend** ☁️ *Enterprise Ready*
+
+Automatically creates Azure infrastructure for production use:
 
 ```powershell
 .\Initialize-DevContainer.ps1 -TenantId "your-tenant-id" `
                              -SubscriptionId "your-subscription-id" `
                              -ProjectName "my-project" `
-                             -ProjectType "terraform" `
+                             -BackendType "azure" `
                              -Environment "dev" `
                              -Location "eastus" `
-                             -CreateBackend `
                              -IncludeExamples
 ```
+
+**Features:**
+- ✅ Automatic Azure backend infrastructure creation
+- ✅ Generates complete `backend.tfvars` configuration
+- ✅ Enterprise-ready state management
+- ✅ Team collaboration support
+- ✅ Zero-touch setup
 
 ### 3. Validate Setup
 

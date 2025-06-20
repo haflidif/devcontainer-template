@@ -19,14 +19,10 @@ terraform {
     #   version = "~> 5.0"
     # }
   }
-
   # Configure your backend here
-  # backend "azurerm" {
-  #   resource_group_name  = "terraform-state-rg"
-  #   storage_account_name = "mystorageaccount"
-  #   container_name       = "tfstate"
-  #   key                  = "myproject.terraform.tfstate"
-  # }
+  # backend "local" {}
+
+  # backend "azurerm" {}
 
   # backend "s3" {
   #   bucket = "my-terraform-state-bucket"
